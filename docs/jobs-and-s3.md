@@ -52,8 +52,8 @@ obsmigrate jobs verify --spec job.json --offline-snapshot --against /derived/job
   --progress 2>/derived/verify-progress.jsonl
 ```
 
-Keep log destinations outside original sources. This opt-in is available in the
-available in 1.1.0rc1; the frozen 1.0.0 wheel does not have the flag.
+Keep log destinations outside original sources. This opt-in is available in
+1.1.0rc1; the frozen 1.0.0 wheel does not have the flag.
 Without it, stderr and stdout behavior remains unchanged.
 
 Progress records have `type: "job_progress"`, `progress_schema: 1`, `operation`,
