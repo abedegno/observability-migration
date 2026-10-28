@@ -71,6 +71,9 @@ def main(argv=None):
         journal_mode = name.startswith("journal-")
         tsidx_mode = name.startswith("tsidx-")
         bucket_mode = name.startswith("bucket-")
+        if tsidx_mode or bucket_mode:
+            p.add_argument('--resource-profile',choices=['default','large'],default='default',
+                           help='explicit bounded larger MSIDX4 bulk scan; other metric formats retain defaults')
         p.add_argument("path", help="explicit offline metric bucket snapshot; physical points only" if bucket_mode else "one metric MSIDX1/MSIDX2/MSIDX4 file; physical stored points only" if tsidx_mode else "retained metric journal/bucket; physical records only" if journal_mode else "NDJSON acquired with Splunk native exporttool default mode")
         p.add_argument("--format", choices=["ndjson", "parquet"], default="parquet")
         p.add_argument("--out" if name.endswith("export") else "--against", required=True)
@@ -236,6 +239,8 @@ def main(argv=None):
                 elif args.command=="lexicon-export":result=event_lexicon.export(args.path,args.out,args.format,experimental=args.experimental,retain_opaque_trailer=args.retain_opaque_trailer,limits=limits)
                 else:result=event_lexicon.verify(args.path,args.against,args.format,experimental=args.experimental,retain_opaque_trailer=args.retain_opaque_trailer,limits=limits)
         elif args.group == "metrics":
+            from .metric_limits import LARGE_METRICS
+            limits=LARGE_METRICS if getattr(args,'resource_profile','default')=='large' else None
             if args.command=='snapshot-sql':
                 from .federation import BucketSession
                 session=BucketSession(max_input_bytes=args.max_input_bytes,max_result_bytes=args.max_result_bytes,
@@ -287,7 +292,7 @@ def main(argv=None):
                     else:result=metric_select.verify(args.path,predicate,args.against,args.format,**options)
             elif args.command.startswith("bucket-"):
                 from . import metric_bucket
-                options=dict(offline_snapshot=args.offline_snapshot,include_inactive=args.include_inactive)
+                options=dict(offline_snapshot=args.offline_snapshot,include_inactive=args.include_inactive,limits=limits)
                 if args.command=="bucket-inventory":
                     result=metric_bucket.Snapshot(args.path,**options).inventory()
                 elif args.command=="bucket-export":
@@ -297,17 +302,19 @@ def main(argv=None):
                     result=metric_bucket.verify(args.path,args.against,args.format,experimental=args.experimental,
                                                 index=args.index,bucket_id=args.bucket_id,**options)
             elif args.command.startswith("tsidx-"):
-                from .metric_storage import reader_for
+                from .metric_storage import reader_for,record_options
                 reader=reader_for(args.path)
+                source_options=record_options(reader,limits)
                 if args.command == "tsidx-export":
                     source,output=Path(args.path).resolve(),Path(args.out).resolve()
                     if output.is_relative_to(source.parent):
                         raise ValueError("output must be outside the source archive/bucket")
-                points=reader.records(args.path,experimental=args.experimental,index=args.index,bucket_id=args.bucket_id)
+                points=reader.records(args.path,experimental=args.experimental,index=args.index,bucket_id=args.bucket_id,**source_options)
                 if args.command == "tsidx-export":
                     result=reader.export(points,args.out,args.format)
                 else:
                     result=reader.verify(points,args.against,args.format)
+                if limits is not None:result['metric_resource_profile']=limits.describe()
             elif args.command.startswith("journal-"):
                 from . import metric_journal
                 if args.command == "journal-export":

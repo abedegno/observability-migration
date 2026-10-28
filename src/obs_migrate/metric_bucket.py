@@ -11,7 +11,7 @@ from pathlib import Path
 import re
 import stat
 
-from . import msidx,metric_storage
+from . import msidx,metric_storage,metric_limits
 from .buckets import _manifest
 
 MAX_FILES=2048
@@ -55,7 +55,8 @@ def _fingerprint(path):
 
 
 class Snapshot:
-    def __init__(self,path,*,offline_snapshot=False,include_inactive=False):
+    def __init__(self,path,*,offline_snapshot=False,include_inactive=False,limits=None):
+        self.limits=metric_limits.validate(limits)
         if not offline_snapshot:raise ValueError('metric bucket access requires an explicit --offline-snapshot assertion')
         path=Path(path)
         if path.is_symlink() or not path.is_dir():raise ValueError('metric bucket must be a regular local directory')
@@ -104,6 +105,7 @@ class Snapshot:
                 except ValueError as error:raise ValueError('bucket contains an unsupported/nonmetric TSIDX slice') from error
                 if self.reader is not None and reader is not self.reader:
                     raise ValueError('mixed metric storage profiles in one bucket are unverified')
+                metric_storage.record_options(reader,self.limits)
                 self.reader=reader
                 match=SLICE.fullmatch(name);expected=(int(match[1]),int(match[2]))
                 if reader is msidx:
@@ -154,7 +156,8 @@ class Snapshot:
         if not experimental:raise ValueError('metric bucket decoder is experimental; pass --experimental')
         self.finish();first=True
         for name in self.slices:
-            rows=self.reader.records(self.root/name,experimental=True,index=index,bucket_id=bucket_id)
+            rows=self.reader.records(self.root/name,experimental=True,index=index,bucket_id=bucket_id,
+                                     **metric_storage.record_options(self.reader,self.limits))
             try:
                 for row in rows:
                     if row['source_sha256']!=self.manifest['files'][name]['sha256']:
@@ -168,15 +171,19 @@ class Snapshot:
         self.finish()
 
 
-def export(path,output,format='parquet',*,experimental=False,offline_snapshot=False,include_inactive=False,index=None,bucket_id=None):
+def export(path,output,format='parquet',*,experimental=False,offline_snapshot=False,include_inactive=False,index=None,bucket_id=None,limits=None):
     root=Path(path).resolve();output=Path(output).resolve()
     if output.is_relative_to(root):raise ValueError('output must be outside the source archive/bucket')
-    snapshot=Snapshot(path,offline_snapshot=offline_snapshot,include_inactive=include_inactive)
+    snapshot=Snapshot(path,offline_snapshot=offline_snapshot,include_inactive=include_inactive,limits=limits)
     result=snapshot.reader.export(snapshot.records(experimental=experimental,index=index,bucket_id=bucket_id),output,format)
-    return dict(result,bucket_snapshot_sha256=snapshot.sha256,selected_slices=len(snapshot.slices))
+    result=dict(result,bucket_snapshot_sha256=snapshot.sha256,selected_slices=len(snapshot.slices))
+    if snapshot.limits is not None:result['metric_resource_profile']=snapshot.limits.describe()
+    return result
 
 
-def verify(path,against,format='parquet',*,experimental=False,offline_snapshot=False,include_inactive=False,index=None,bucket_id=None):
-    snapshot=Snapshot(path,offline_snapshot=offline_snapshot,include_inactive=include_inactive)
+def verify(path,against,format='parquet',*,experimental=False,offline_snapshot=False,include_inactive=False,index=None,bucket_id=None,limits=None):
+    snapshot=Snapshot(path,offline_snapshot=offline_snapshot,include_inactive=include_inactive,limits=limits)
     result=snapshot.reader.verify(snapshot.records(experimental=experimental,index=index,bucket_id=bucket_id),against,format)
-    return dict(result,bucket_snapshot_sha256=snapshot.sha256,selected_slices=len(snapshot.slices))
+    result=dict(result,bucket_snapshot_sha256=snapshot.sha256,selected_slices=len(snapshot.slices))
+    if snapshot.limits is not None:result['metric_resource_profile']=snapshot.limits.describe()
+    return result

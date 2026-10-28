@@ -18,6 +18,11 @@ The fixtures are small, redistributable examples with original binary bytes:
   independent offline native CSV reference. Source stability and stopped-service
   observations are explicit in provenance; no NAS data or credentials are included.
 
+- `metric-xor-9`: an unchanged native CC0 MSIDX4 flags-5 control from the existing
+  9.0.0 metric-compression lab, with 1,201 points, four original numeric blocks,
+  original JSON inputs and native export reference. Manifest hashes bind the subset;
+  no NAS data or fabricated binary formats are included.
+
 These samples demonstrate limited observed profiles. They do not certify every
 producer setting, DDSS layout, query semantic or proprietary format variation.
 Never substitute fabricated proprietary binary data for compatibility evidence.

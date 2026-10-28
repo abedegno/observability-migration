@@ -1,0 +1,15 @@
+{
+  "producer": {
+    "VERSION": "9.0.0",
+    "BUILD": "6818ac46f2ec",
+    "PRODUCT": "splunk",
+    "PLATFORM": "Linux-x86_64"
+  },
+  "profile": "metric-compression",
+  "license_group": "Free",
+  "authorization": "controlled nonprivate lab data",
+  "license": "CC0-1.0",
+  "binary_origin": "native ingestion and hot-to-warm roll; no fabricated bucket bytes",
+  "origin": "existing genuine metric-compression/9.0.0 controlled native fixture; selected MSIDX4 flags5 bucket only",
+  "source_manifest_sha256": "161d5ebc16862b12a431f75a1e2ae7685e10eadc42f8ec37a5bdb3d8ac1b376b"
+}

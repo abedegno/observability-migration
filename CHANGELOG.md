@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add opt-in bounded larger MSIDX4 bulk extraction with incremental XOR cursors,
+  preserving default limits, exact numeric provenance and source validation.
+
+
 - Read the observed extended Float64 event metadata profile for explicitly declared
   event inputs, retaining exact numeric and extension bytes with strict layout checks.
 

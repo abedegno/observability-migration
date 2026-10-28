@@ -79,3 +79,21 @@ which owns the same Python namespace.
 Results are JSON on stdout; failures use stderr and a nonzero status. A failed or
 cancelled iterator must not be treated as a successful partial migration. Retain
 original sources and use the verifier before consuming published exports.
+
+
+Larger MSIDX4 bulk scans use an explicit resource profile:
+
+```sh
+obsmigrate metrics bucket-export /offline/metric-bucket --experimental \
+  --offline-snapshot --resource-profile large --out /derived/large-metrics.parquet
+obsmigrate metrics bucket-verify /offline/metric-bucket --experimental \
+  --offline-snapshot --resource-profile large --against /derived/large-metrics.parquet
+```
+
+The profile admits at most 1,000,000 value entries and column values per slice,
+uses incremental XOR cursors with an 8 MiB logical byte budget, and leaves other
+limits and full validation unchanged. Single-file `metrics tsidx-export` and
+`tsidx-verify` accept the same option. Default calls keep their previous budgets.
+Explicit profiles are limited to MSIDX4 bulk access; larger capture/selection/SQL
+workloads and legacy MSIDX1/2 profiles are not promoted. The byte budget is block
+wire bytes plus a 1,024-byte allowance per cursor, not a process RSS limit.

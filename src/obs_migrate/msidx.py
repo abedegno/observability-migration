@@ -21,6 +21,7 @@ import pyarrow.parquet as pq
 from .events import EXACT_TIME
 from .metric_journal import MEASUREMENT,DIMENSION
 from .metric_io import MetricRecordIO
+from . import metric_limits
 
 FORMAT='splunk-msidx4-physical-points'
 DECODER='obs-msidx4-2'
@@ -82,8 +83,8 @@ class MsidxError(ValueError):
 
 def _strict8(value):return (value//8+1)*8
 
-def _count(value,label,*,zero=False):
-    if not (0 if zero else 1)<=value<=MAX_ENTRIES:raise MsidxError(label+' outside supported resource bounds')
+def _count(value,label,*,zero=False,maximum=None):
+    if not (0 if zero else 1)<=value<=(MAX_ENTRIES if maximum is None else maximum):raise MsidxError(label+' outside supported resource bounds')
     return value
 
 
@@ -117,7 +118,13 @@ class _FileView:
 
 
 class _Reader:
-    def __init__(self,data):
+    def __init__(self,data,*,limits=None):
+        self.limits=metric_limits.validate(limits)
+        self.value_limit=MAX_ENTRIES if limits is None else limits.values
+        self.cursor_cache=OrderedDict()
+        self.work=dict(numeric_lookups=0,xor_values_decoded=0,legacy_block_decodes=0,
+                       cursor_misses=0,cursor_restarts=0,cursor_evictions=0,
+                       cursor_bytes=0,peak_cursor_bytes=0)
         self.data=data
         self.size=len(data)
         self.block_cache=OrderedDict();self.cached_values=0
@@ -125,7 +132,7 @@ class _Reader:
         self.flags=self.u64be(72)
         if self.flags not in (0,5,96,101):raise MsidxError('unsupported MSIDX4 flags/timestamp compression profile')
         if self.span(100,20)!=bytes(20):raise MsidxError('unverified MSIDX4 header extension')
-        self.nvalues=_count(self.u32be(8),'value entries')
+        self.nvalues=_count(self.u32be(8),'value entries',maximum=self.value_limit)
         self.nterms=_count(self.u32be(16),'terms')
         self.ndimsets=_count(self.u32be(96),'dimension sets')
         if self.ndimsets>=self.nvalues:raise MsidxError('MSIDX4 has no timestamp entries')
@@ -170,6 +177,43 @@ class _Reader:
         expected={(tid,did) for did,(_,ds) in enumerate(self.dimsets) for tid in ds[-ds[1]:]}
         actual={(tid,did) for tid,col in self.columns.items() for did in col.slots}
         if actual!=expected:raise MsidxError('unreferenced or missing column/dimension group')
+
+
+    def work_report(self):
+        return dict(self.work)
+
+    def close_cursors(self):
+        for cursor in self.cursor_cache.values():
+            cursor.close()
+        self.cursor_cache.clear()
+        self.work['cursor_bytes']=0
+
+    def cursor_value(self,column,block,number):
+        key=(column.header_offset,block)
+        cache=self.cursor_cache
+        if key not in cache:
+            charge=column.block_bytes+1024
+            if charge>self.limits.cursor_bytes:
+                raise MsidxError('numeric cursor cannot fit resource byte budget')
+            while cache and self.work['cursor_bytes']+charge>self.limits.cursor_bytes:
+                _,old=cache.popitem(last=False)
+                self.work['cursor_bytes']-=old.charge
+                old.close();self.work['cursor_evictions']+=1
+            offset=column.values+block*column.block_bytes
+            count=column.ends[block]-(column.ends[block-1] if block else 0)
+            wire=self.span(offset,column.block_bytes)
+            cache[key]=_NumericCursor(wire,count,charge)
+            self.work['cursor_misses']+=1;self.work['cursor_bytes']+=charge
+            self.work['peak_cursor_bytes']=max(self.work['peak_cursor_bytes'],self.work['cursor_bytes'])
+        else:
+            cache.move_to_end(key)
+        cursor=cache[key]
+        if number<cursor.position:
+            cursor.restart();self.work['cursor_restarts']+=1
+        while cursor.position<number:
+            cursor.advance();self.work['xor_values_decoded']+=1
+        return cursor.last
+
 
     def span(self,offset,length):
         if offset<0 or length<0 or offset>self.size or length>self.size-offset:
@@ -266,7 +310,7 @@ class _Reader:
             self.term(tid,b'metric_name::')
             pos=base+last;header=self.span(pos,32)
             nh,nv=struct.unpack_from('<II',header)
-            _count(nh,'column groups');_count(nv,'column values')
+            _count(nh,'column groups');_count(nv,'column values',maximum=self.value_limit)
             groups+=nh
             if groups>MAX_ENTRIES:raise MsidxError('column group resource bound exceeded')
             if header[8]!=1:raise MsidxError('unsupported numeric type/column header')
@@ -399,7 +443,7 @@ class _Reader:
             ordinal=group_end
 
 
-def records(path,*,experimental=False,index=None,bucket_id=None):
+def records(path,*,experimental=False,index=None,bucket_id=None,limits=None,stats=None):
     """Scan one immutable TSIDX file, yielding physical stored metric point rows.
 
     This API deliberately accepts a file, not bucket discovery: callers must not
@@ -407,9 +451,19 @@ def records(path,*,experimental=False,index=None,bucket_id=None):
     Exhaust the iterator to perform the final source-stability check.
     """
     if not experimental:raise MsidxError('MSIDX reader is experimental; pass --experimental')
-    with _source(path) as (data,sha):
-        reader=_Reader(data)
-        yield from reader.rows(sha,index,bucket_id)
+    limits=metric_limits.validate(limits)
+    if stats is not None and type(stats) is not dict:raise ValueError('metric stats require a dictionary')
+    reader=None;complete=False
+    try:
+        with _source(path) as (data,sha):
+            reader=_Reader(data,limits=limits)
+            yield from reader.rows(sha,index,bucket_id)
+        complete=True
+    finally:
+        if reader is not None:reader.close_cursors()
+        if stats is not None:
+            if reader is not None:stats.update(reader.work_report())
+            stats['complete']=complete
 
 
 class _Bits:
@@ -441,6 +495,26 @@ def _xor_values(wire,count):
         yield (previous.to_bytes(8,'little'),start,bits.position,before,old_leading,old_trailing)
 
 
+
+class _NumericCursor:
+    """One bounded original block and its incremental native decoder state."""
+    def __init__(self,wire,count,charge):
+        self.wire,self.count,self.charge=wire,count,charge
+        self.position=-1;self.last=None
+        self.iterator=_xor_values(wire,count)
+
+    def restart(self):
+        self.iterator.close()
+        self.iterator=_xor_values(self.wire,self.count)
+        self.position=-1;self.last=None
+
+    def advance(self):
+        self.last=next(self.iterator);self.position+=1
+
+    def close(self):
+        self.iterator.close();self.wire=b'';self.last=None
+
+
 class _Column:
     def __init__(self,reader,slots,values,ends,block_words,header_offset,header):
         self.reader,self.slots,self.values=reader,slots,values
@@ -452,6 +526,7 @@ class _Column:
         from bisect import bisect_right
         encode=lambda value:base64.b64encode(value).decode()
         number=self.slots[did][0]+local
+        self.reader.work['numeric_lookups']+=1
         state={'column_header_offset':self.header_offset,'column_header_wire_base64':encode(self.header)}
         if not self.ends:
             position=self.values+number*8
@@ -460,14 +535,19 @@ class _Column:
         base=self.ends[block-1] if block else 0
         block_offset=self.values+block*self.block_bytes
         cache=self.reader.block_cache;key=(self.header_offset,block)
-        if key not in cache:
+        if self.reader.limits is not None:
+            bits,start,stop,previous,leading,trailing=self.reader.cursor_value(self,block,number-base)
+        elif key not in cache:
             wire=self.reader.span(block_offset,self.block_bytes)
             decoded=list(_xor_values(wire,self.ends[block]-base))
+            self.reader.work['legacy_block_decodes']+=1
+            self.reader.work['xor_values_decoded']+=len(decoded)
             while cache and self.reader.cached_values+len(decoded)>MAX_CACHED_VALUES:
                 _,old=cache.popitem(last=False);self.reader.cached_values-=len(old)
             cache[key]=decoded;self.reader.cached_values+=len(decoded)
         else:cache.move_to_end(key)
-        bits,start,stop,previous,leading,trailing=cache[key][number-base]
+        if self.reader.limits is None:
+            bits,start,stop,previous,leading,trailing=cache[key][number-base]
         offset=block_offset+start//8;length=(stop+7)//8-start//8
         state.update(encoding='xor-float64-lsb',offset=offset,encoded_wire_base64=encode(self.reader.span(offset,length)),
                      bit_offset=start%8,bit_width=stop-start,block_offset=block_offset,block_bytes=self.block_bytes,

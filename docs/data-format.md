@@ -64,3 +64,27 @@ opcodes, journal profiles, representations, overlaps, unused bytes and nonfinite
 values refuse. These are stored event fields, not metric measurements. Native
 physical export comparisons do not establish search-time extraction, knowledge
 objects, indexed search, or whole-index/snapshot equivalence.
+
+
+### Explicit larger MSIDX4 bulk resource profile
+
+`metric_limits.MetricLimits` is a frozen per-reader profile. The predefined
+`LARGE_METRICS` permits 1,000,000 value/time entries and column values per slice;
+terms, dimension sets, column/group counts, metadata and source caps stay unchanged.
+The default `None` retains existing count limits and decoded-block cache behaviour.
+
+Explicit profiles use an LRU of original-block incremental XOR cursors. A cursor
+holds one bounded encoded block and decoder state. Forward accesses advance that
+state; repeated positions reuse it; backward accesses restart the bounded block
+prefix. Eviction releases the cursor. Charge is encoded block bytes plus 1,024 bytes
+per cursor, with an 8 MiB maximum; an individual cursor that cannot fit refuses
+before its block is read. This is logical accounting, not an RSS guarantee, and
+does not imply compressed-file random seeking or indexed search.
+
+Rows, numeric provenance, snapshot identities and transport schemas are unchanged.
+Export/verify receipts identify explicit limits separately. Optional
+`msidx.records(..., limits=profile, stats=dict)` reports numeric work and peak cursor
+charge; `complete` becomes true only after full source exhaustion and final source
+checks. Closing a partial iterator releases cursor buffers and records incomplete
+validation. Larger profiles apply to MSIDX4 file/bucket bulk export and verification;
+legacy readers and capture/selection/SQL/federation retain existing limits.

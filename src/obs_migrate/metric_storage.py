@@ -1,7 +1,7 @@
 """Explicit on-disk format dispatch for independently implemented metric scans."""
 from pathlib import Path
 
-from . import msidx,msidx1,msidx2
+from . import msidx,msidx1,msidx2,metric_limits
 
 
 def reader_for(path):
@@ -15,5 +15,14 @@ def reader_for(path):
     raise ValueError('unsupported metric storage signature; verified Float64 MSIDX1/MSIDX2/MSIDX4 profiles only')
 
 
-def records(path,*,experimental=False,index=None,bucket_id=None):
-    yield from reader_for(path).records(path,experimental=experimental,index=index,bucket_id=bucket_id)
+def record_options(reader,limits):
+    limits=metric_limits.validate(limits)
+    if limits is None:return {}
+    if reader is not msidx:raise ValueError('explicit metric resource profiles require MSIDX4')
+    return {'limits':limits}
+
+
+def records(path,*,experimental=False,index=None,bucket_id=None,limits=None):
+    reader=reader_for(path)
+    yield from reader.records(path,experimental=experimental,index=index,bucket_id=bucket_id,
+                              **record_options(reader,limits))
