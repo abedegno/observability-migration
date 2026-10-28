@@ -1,6 +1,12 @@
 name: Portable tests
 on:
+  push:
+    branches: [main]
+  pull_request:
   workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
@@ -21,11 +27,13 @@ jobs:
           python-version: ${{ matrix.python }}
           architecture: ${{ matrix.os == 'ubuntu-24.04' && 'x64' || 'arm64' }}
       - name: Install
-        run: python -m pip install '.[test]'
+        run: |
+          python -m venv .venv
+          .venv/bin/python -m pip install '.[test]'
       - name: Register audited external decoder
         run: |
           git -c core.autocrlf=false clone https://github.com/ponquersohn/splunk_ddss_extractor.git upstream/splunk_ddss_extractor
           git -C upstream/splunk_ddss_extractor checkout --detach d2885c63b36f115189f810eb0f43a888cc73c967
-          obsmigrate setup-decoder --source "$PWD/upstream/splunk_ddss_extractor/src/splunk_ddss_extractor"
+          .venv/bin/obsmigrate setup-decoder --source "$PWD/upstream/splunk_ddss_extractor/src/splunk_ddss_extractor"
       - name: Test
-        run: python -m pytest -q
+        run: .venv/bin/python -m pytest -q

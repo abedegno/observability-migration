@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.59.0rc3 — unreleased
+## 0.59.0rc3 — 2026-10-28
 
 - Establish the curated source repository, focused documentation and a small,
   redistributable test fixture set.

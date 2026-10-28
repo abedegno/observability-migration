@@ -19,5 +19,7 @@ For a release candidate:
 5. Publish only after the repository owner approves the exact release assets.
    Do not replace published files or force-retag. Publish a new version for fixes.
 
-The current 0.59.0rc3 is an unreleased source candidate. No public release, PyPI
-upload, production native wheel or stable 1.0 promotion is implied by this file.
+The [0.59.0rc3 prerelease](https://github.com/abedegno/observability-migration/releases/tag/v0.59.0rc3)
+is published from commit `5f196a0d5afc34377efe0be760d533266bc79502`.
+Its attached qualification summary describes the exact tested assets. PyPI
+publication, production native wheels and stable 1.0 promotion remain separate work.
