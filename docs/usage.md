@@ -48,6 +48,20 @@ obsmigrate metrics bucket-export /offline/metric-bucket \
   --experimental --offline-snapshot --out /derived/indexed-metrics.parquet
 ```
 
+For recognised event buckets that exceed the default linked-reader count limits,
+select the existing bounded large profile explicitly:
+
+```sh
+obsmigrate events snapshot-inspect /offline/event-bucket \
+  --experimental --offline-snapshot --backend journal --resource-profile large
+```
+
+The large profile permits up to one million linked events and 512 MiB of
+decompressed journal data. Other count/byte limits still apply. These are logical
+budgets, not a process memory guarantee; pinned-source and eager Arrow caps remain
+unchanged. It does not accept unknown physical layouts. Ordinary journal export
+uses a separate streaming path and does not require this linked-index option.
+
 These formats have distinct schemas and validation contracts. Linked events
 require complete journal/index reconciliation. Retained metric journal times do
 not necessarily equal indexed metric times. General indexed search and metric
