@@ -137,7 +137,9 @@ class Observer:
         if row['record_ordinal']!=count:raise ValueError('native record access requires complete physical ordinals')
         if decoder.header['version']!=1 or decoder.header['align_bits']!=5 or not decoder.state_time_seen:
             raise ValueError('native record access requires journal v1/align5 with proven time state')
-        flags=int(decoder.private_seen)|(int(decoder.state_time_seen)<<1)
+        # Capture the validated row profile alongside the existing state flags.
+        flags=(int(decoder.private_seen)|(int(decoder.state_time_seen)<<1)|
+               (int(row['decoder']==journal.EXTENDED_EVENT_DECODER)<<2))
         self._states.extend(STATE.pack(decoder.record_offset,len(decoder.record_wire),decoder.base_event_time,
             decoder.active_host,decoder.active_source,decoder.active_source_type,flags))
         wire=events.json_bytes(row);self.last_json_size=len(wire)
@@ -232,7 +234,8 @@ class Observer:
             read+=len(metadata) if metadata.isascii() else len(metadata.encode('utf8'))
         constants={'schema_version':3,'bucket_disabled':self._context.disabled,'bucket_context_json':self._context.context_json,
             'index':index,'bucket_id':bucket_id,'object_uri':object_uri,'source_sha256':self.sha256,
-            'record_ordinal':ordinal,'decompressed_offset':offset,'decoder':journal.DECODER}
+            'record_ordinal':ordinal,'decompressed_offset':offset,
+            'decoder':journal.EXTENDED_EVENT_DECODER if flags&4 else journal.DECODER}
         for name in needed&constants.keys():row[name]=constants[name]
         for name,key,active in (('host',3,host),('source',4,source),('sourcetype',5,stype)):
             if name in needed:

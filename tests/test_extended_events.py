@@ -124,3 +124,15 @@ def test_native_csv_reference_agrees_with_all_genuine_events():
                 token=re.search(r'(?:^| )'+re.escape(key)+r'::([^ ]+)',want['_meta']);assert token
                 assert struct.pack('<d',float(token.group(1)))==base64.b64decode(entry['value_float64_bits_le_base64'])
             else:assert key+'::'+base64.b64decode(entry['value_base64']).decode() in shlex.split(want['_meta'])
+
+
+@pytest.mark.parametrize('budget',[0,512,1048576])
+def test_fast_projection_keeps_extended_decoder_and_numeric_metadata(budget):
+    bucket,canonical=rows()
+    with EventBucket(bucket,experimental=True,offline_snapshot=True,backend='journal',cache_projections=True,metadata_cache_bytes=budget) as source:
+        assert list(source.projected_records(('decoder',)))==[{'decoder':row['decoder']} for row in canonical]
+        row,work=source._journal.project(0,('decoder',))
+        assert row=={'decoder':journal.EXTENDED_EVENT_DECODER}
+        assert work['native_records_decoded']==0 and work['native_cached_projection_rows']==1
+        columns=('decoder','metadata_json','raw','record_wire','event_time')
+        assert list(source.projected_records(columns))==[{key:row[key] for key in columns} for row in canonical]
