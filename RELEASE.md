@@ -24,5 +24,6 @@ is published from commit `5f196a0d5afc34377efe0be760d533266bc79502`.
 Its attached qualification summary describes the exact tested assets. PyPI
 publication, production native wheels and stable 1.0 promotion remain separate work.
 
-The current source candidate is `0.59.0rc4` (unreleased). Its qualification and
-assets are prepared separately; no new publication is implied by source versioning.
+The [0.59.0rc4 prerelease](https://github.com/abedegno/observability-migration/releases/tag/v0.59.0rc4)
+is published from commit `9e4fcca2a21e69a5e3ebdf1fe4fe0e2a746e403f`. Later
+changes under the changelog's Unreleased heading are not part of those frozen assets.

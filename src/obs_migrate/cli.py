@@ -34,7 +34,8 @@ def main(argv=None):
         p.add_argument('--retain-opaque-trailer',action='store_true',help='preserve an uninterpreted index tail; strict rejection remains default')
         p.add_argument('--expected-snapshot-sha256',help='trusted previously recorded full snapshot identity; checked before journal decoding')
         p.add_argument('--resource-profile',choices=['default','large'],default='default',help='explicit native event count/decompression budgets; source and Arrow caps unchanged')
-        p.add_argument('--cache-projections',action='store_true',help='opt-in native scalar/raw-span cache; requires journal backend')
+        p.add_argument('--cache-projections',action='store_true',help='opt-in native scalar/raw/metadata cache; requires journal backend')
+        p.add_argument('--metadata-cache-bytes',type=int,help='metadata cache accounting budget: 0..67108864 bytes; default 33554432; requires projection caching to retain entries')
         p.add_argument('--term-base64',help='exact physical lexicon bytes; no SPL or tokenization')
         if name=='snapshot-inspect':p.add_argument('--observe-delete-bitmap',action='store_true',help='compare observed one-bit native arrays with complete reconciled journal masks; no search visibility claim')
         if name!='snapshot-inspect':
@@ -186,7 +187,7 @@ def main(argv=None):
             if getattr(args,'provider','arrow')=='native' and backend!='journal':raise ValueError('native SQL provider requires --backend journal')
             with event_bucket.EventBucket(args.path,experimental=args.experimental,offline_snapshot=args.offline_snapshot,
                 include_inactive=args.include_inactive,index=args.index,bucket_id=args.bucket_id,object_uri=args.object_uri,backend=backend,
-                retain_opaque_trailer=args.retain_opaque_trailer,cache_projections=args.cache_projections,limits=limits,expected_snapshot_sha256=args.expected_snapshot_sha256,
+                retain_opaque_trailer=args.retain_opaque_trailer,cache_projections=args.cache_projections,metadata_cache_bytes=args.metadata_cache_bytes,limits=limits,expected_snapshot_sha256=args.expected_snapshot_sha256,
                 visibility=args.visibility) as snapshot:
                 if args.command=='snapshot-inspect':
                     result=snapshot.describe_selection(term)

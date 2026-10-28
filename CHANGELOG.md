@@ -1,6 +1,12 @@
 # Changelog
 
-## 0.59.0rc4 — unreleased
+## Unreleased
+
+- Add bounded exact metadata JSON projections to the existing opt-in native
+  projection cache, with canonical decoding when an entry cannot be retained.
+- Expose the metadata cache budget and retained-byte/coverage accounting.
+
+## 0.59.0rc4 — 2026-10-28
 
 - Reduce worker-pool memory overhead during Parquet export verification and
   manifest-managed dataset reads without changing schema or field comparisons.

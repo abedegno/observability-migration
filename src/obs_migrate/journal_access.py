@@ -18,6 +18,87 @@ PROJECTION=struct.Struct('<IqQ')
 DECODER='obs-native-journal-address-1'
 
 
+DEFAULT_METADATA_CACHE_BYTES=32*1024**2
+MAX_METADATA_CACHE_BYTES=64*1024**2
+_METADATA_REF=struct.Struct('<I')
+_METADATA_ENTRY=struct.Struct('<II')
+_METADATA_ENTRY_ALLOWANCE=128
+
+
+def _metadata_cache_budget(value):
+    if type(value) is not int or not 0<=value<=MAX_METADATA_CACHE_BYTES:
+        raise ValueError('metadata cache budget must be an integer from 0 to 64 MiB')
+    return value
+
+
+class _MetadataCache:
+    """Bounded immutable canonical strings; missing entries require full decoding.
+
+    Accounting covers packed buffers plus a per-entry construction allowance,
+    not process RSS. The temporary exact-string lookup is discarded at finish.
+    """
+    def __init__(self,budget):
+        self.budget=_metadata_cache_budget(budget)
+        self._data=bytearray();self._entries=bytearray();self._refs=bytearray()
+        self._lookup={};self._records=0;self._cached=0;self._ready=False;self._closed=False
+
+    def _charged(self):
+        return len(self._data)+len(self._entries)+len(self._refs)+len(self._entries)//_METADATA_ENTRY.size*_METADATA_ENTRY_ALLOWANCE
+
+    def add(self,value):
+        if self._ready or self._closed:raise ValueError('metadata cache capture is closed')
+        if not isinstance(value,str):raise ValueError('metadata cache requires canonical strings')
+        ordinal=self._records;self._records+=1
+        # Keep a bounded ordinal prefix. Later records safely use canonical fallback.
+        if ordinal!=len(self._refs)//_METADATA_REF.size or self._charged()+_METADATA_REF.size>self.budget:return
+        self._refs.extend(_METADATA_REF.pack(0))
+        reference=self._lookup.get(value)
+        if reference is None:
+            remaining=self.budget-self._charged()-_METADATA_ENTRY.size-_METADATA_ENTRY_ALLOWANCE
+            if len(value)>remaining:return
+            encoded=value.encode('utf8')
+            if len(encoded)>remaining:return
+            reference=len(self._entries)//_METADATA_ENTRY.size+1
+            self._entries.extend(_METADATA_ENTRY.pack(len(self._data),len(encoded)))
+            self._data.extend(encoded);self._lookup[value]=reference
+        _METADATA_REF.pack_into(self._refs,ordinal*_METADATA_REF.size,reference)
+        self._cached+=1
+
+    def finish(self):
+        if self._ready or self._closed:raise ValueError('metadata cache capture is closed')
+        self._lookup=None
+        self._data=bytes(self._data);self._entries=bytes(self._entries);self._refs=bytes(self._refs)
+        self._ready=True
+
+    def get(self,ordinal):
+        if self._closed or not self._ready:raise ValueError('metadata cache is closed or incomplete')
+        if type(ordinal) is not int or not 0<=ordinal<self._records:raise ValueError('metadata cache ordinal outside capture')
+        offset=ordinal*_METADATA_REF.size
+        if offset>=len(self._refs):return None
+        reference=_METADATA_REF.unpack_from(self._refs,offset)[0]
+        if not reference:return None
+        if reference>len(self._entries)//_METADATA_ENTRY.size:raise ValueError('metadata cache reference outside capture')
+        start,length=_METADATA_ENTRY.unpack_from(self._entries,(reference-1)*_METADATA_ENTRY.size)
+        if start+length>len(self._data):raise ValueError('metadata cache reference span outside capture')
+        try:return self._data[start:start+length].decode('utf8')
+        except UnicodeDecodeError as error:raise ValueError('metadata cache reference has invalid UTF8') from error
+
+    def report(self):
+        if self._closed or not self._ready:raise ValueError('metadata cache is closed or incomplete')
+        return {'budget_bytes':self.budget,'charged_bytes':self._charged(),
+            'buffer_bytes':len(self._data)+len(self._entries)+len(self._refs),
+            'payload_bytes':len(self._data),'reference_bytes':len(self._refs),
+            'descriptor_bytes':len(self._entries),'records':self._records,
+            'cached_records':self._cached,'unique_values':len(self._entries)//_METADATA_ENTRY.size,
+            'encoding':'UTF8 canonical JSON;u32 offset/length entries;u32 ordinal references;zero means fallback',
+            'accounting':'packed buffers plus 128-byte unique-entry allowance;not process RSS',
+            'validation':'exact strings captured only during complete canonical initial scan;no persisted cache trust'}
+
+    def close(self):
+        self._closed=True;self._ready=False;self._lookup=None
+        self._data=self._entries=self._refs=b''
+
+
 class _Slice:
     def __init__(self,data,start,end):self.data=data;self.pos=start;self.end=end;self.bytes_read=0
     def read(self,n):
@@ -28,10 +109,12 @@ class _Slice:
 
 class Observer:
     """Internal full-scan hook; never a shortcut around validation."""
-    def __init__(self,max_bytes,max_records,*,cache_projections=False):
+    def __init__(self,max_bytes,max_records,*,cache_projections=False,metadata_cache_bytes=DEFAULT_METADATA_CACHE_BYTES):
         if type(max_bytes) is not int or type(max_records) is not int or min(max_bytes,max_records)<1:
             raise ValueError('native journal byte/record limits must be positive integers')
+        metadata_cache_bytes=_metadata_cache_budget(metadata_cache_bytes)
         self.max_bytes=max_bytes;self.max_records=max_records
+        self._metadata_cache=_MetadataCache(metadata_cache_bytes) if cache_projections else None
         self._blob=bytearray();self._states=bytearray();self._digests=bytearray()
         self._stream=None;self.ready=False;self.closed=False;self.last_json_size=0
         self.cache_projections=cache_projections;self._projections=bytearray() if cache_projections else None
@@ -65,6 +148,7 @@ class Observer:
                 raise ValueError('native raw projection span is unverified')
             state=json.loads(row['decoder_state_json'])
             self._projections.extend(PROJECTION.pack(len(raw),row['index_time']['seconds'],state['wire_components']['subsecond_wire']))
+            self._metadata_cache.add(row['metadata_json'])
 
     def finish(self,decoder,context,sha):
         if len(self._blob)!=decoder.reader.pos or not self._states:raise ValueError('native journal capture is incomplete')
@@ -75,7 +159,10 @@ class Observer:
         self._context=copy.copy(context)
         self._context.deletes=MappingProxyType(dict(context.deletes));self._context.matched=frozenset()
         self._blob=bytes(self._blob);self._states=bytes(self._states);self._digests=bytes(self._digests)
-        if self.cache_projections:self._projections=bytes(self._projections)
+        if self.cache_projections:
+            self._projections=bytes(self._projections)
+            if self._metadata_cache._records!=len(self._states)//STATE.size:raise ValueError('metadata cache record count mismatch')
+            self._metadata_cache.finish()
         self._stream=None;self.ready=True
         self.decompressed_sha256=hashlib.sha256(self._blob).hexdigest()
 
@@ -92,6 +179,7 @@ class Observer:
             'initial_full_journal_scan':True,'decompressed_record_address_lookup':True,
             'compressed_journal_random_seek':False,'retained_arrow_bytes':0,
             **({'native_projection_cache':True,'retained_projection_cache_bytes':len(self._projections),
+                'metadata_projection_cache':self._metadata_cache.report(),
                 'projection_cache_encoding':'raw-length-u32,index-second-i64,subsecond-wire-u64;little-endian',
                 'projection_cache_validation':'canonical initial rows and exact original raw/record spans;full-row reads retain canonical digest verification'}
                if self.cache_projections else {})}
@@ -129,7 +217,8 @@ class Observer:
 
     def project(self,ordinal,columns,*,index=None,bucket_id=None,object_uri=None):
         self.check();columns=tuple(columns)
-        if not self.cache_projections or any(name in ('metadata_json','decoder_state_json') for name in columns):
+        metadata=self._metadata_cache.get(ordinal) if self.cache_projections and 'metadata_json' in columns else None
+        if not self.cache_projections or 'decoder_state_json' in columns or ('metadata_json' in columns and metadata is None):
             row,read,_=self.record(ordinal,index=index,bucket_id=bucket_id,object_uri=object_uri)
             return {name:row[name] for name in columns},{'native_records_decoded':1,'native_record_bytes_read':read,
                 'native_cached_projection_rows':0,'native_projected_bytes_read':0}
@@ -138,6 +227,9 @@ class Observer:
         raw_size,index_seconds,subsecond=PROJECTION.unpack_from(self._projections,ordinal*PROJECTION.size)
         if raw_size>length or offset+length>len(self._blob):raise ValueError('native cached projection span outside capture')
         needed=set(columns);row={};read=0
+        if 'metadata_json' in needed:
+            row['metadata_json']=metadata
+            read+=len(metadata) if metadata.isascii() else len(metadata.encode('utf8'))
         constants={'schema_version':3,'bucket_disabled':self._context.disabled,'bucket_context_json':self._context.context_json,
             'index':index,'bucket_id':bucket_id,'object_uri':object_uri,'source_sha256':self.sha256,
             'record_ordinal':ordinal,'decompressed_offset':offset,'decoder':journal.DECODER}
@@ -166,4 +258,6 @@ class Observer:
     def close(self):
         self.closed=True;self.ready=False;self._blob=self._states=self._digests=b''
         self._projections=None
+        if self._metadata_cache is not None:self._metadata_cache.close()
+        self._metadata_cache=None
         self._fields=MappingProxyType({});self._stream=None;self._context=None

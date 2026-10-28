@@ -54,7 +54,7 @@ class EventBucket:
     observed changes; they do not prove a coherent production snapshot.
     """
     def __init__(self,path,*,experimental=False,offline_snapshot=False,include_inactive=False,
-                 index=None,bucket_id=None,object_uri=None,backend='arrow',retain_opaque_trailer=False,cache_projections=False,limits=None,expected_snapshot_sha256=None,
+                 index=None,bucket_id=None,object_uri=None,backend='arrow',retain_opaque_trailer=False,cache_projections=False,metadata_cache_bytes=None,limits=None,expected_snapshot_sha256=None,
                  visibility='physical',_smartstore_mask_delta=None):
         if visibility not in ('physical','undeleted'):raise ValueError('event visibility must be physical or undeleted')
         if _smartstore_mask_delta is not None and (type(_smartstore_mask_delta) is not dict or visibility!='undeleted'):
@@ -68,6 +68,8 @@ class EventBucket:
         max_terms=MAX_TERMS if limits is None else limits.bucket_terms
         max_memberships=MAX_MEMBERSHIPS if limits is None else limits.bucket_memberships
         max_decompressed=MAX_DECOMPRESSED_BYTES if limits is None else limits.decompressed_bytes
+        from .journal_access import Observer,DEFAULT_METADATA_CACHE_BYTES,_metadata_cache_budget
+        metadata_cache_bytes=_metadata_cache_budget(DEFAULT_METADATA_CACHE_BYTES if metadata_cache_bytes is None else metadata_cache_bytes)
         if type(cache_projections) is not bool or cache_projections and backend!='journal':
             raise ValueError('native projection cache requires journal backend and boolean option')
         if backend not in ('arrow','journal'):raise ValueError('event backend must be arrow or journal')
@@ -171,8 +173,7 @@ class EventBucket:
             undeleted_ordinals=array('I') if visibility=='undeleted' else None
             self._ordinals={name:array('I',[0xffffffff])*source.reader.nvalues for name,source in self._sources.items()}
             if backend=='journal':
-                from .journal_access import Observer
-                self._journal=Observer(max_decompressed,max_events,cache_projections=cache_projections);self._stack.callback(self._journal.close)
+                self._journal=Observer(max_decompressed,max_events,cache_projections=cache_projections,metadata_cache_bytes=metadata_cache_bytes);self._stack.callback(self._journal.close)
                 self._native_links=bytearray()
             # Reuse the audited journal decoder on private pinned bytes. Original
             # relative names and parent manifest retain bucket-context semantics.
