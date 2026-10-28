@@ -83,3 +83,15 @@ provenance. The separately supplied decoder is MIT; see
 The [offline access contract](docs/support-contract.md) defines the finite scope
 for a stable build. [Support and maintenance](SUPPORT.md) describes best-effort
 reporting, triage and release policy; optional federation remains experimental.
+
+### Next candidate: 1.1.0rc2
+
+The next candidate includes support for empty bucket-info index-time annotations
+and the observed extended Float64 event metadata profile. The explicit
+`--resource-profile large` on MSIDX4 metric bucket/file export and verification
+admits up to 1,000,000 value/time entries and per-column values; defaults remain
+100,000. Other limits and full source validation remain in force. Larger metric
+capture, SQL and federation are outside this qualification. Metric Parquet reads
+use local non-threaded batches without changing global Arrow settings; memory
+use still depends on the workload and platform. See the [data contract](docs/data-format.md)
+for exact retention and refusal boundaries. This candidate is not yet published.

@@ -2,17 +2,16 @@
 
 ## Unreleased
 
+## 1.1.0rc2 — 2026-10-28
+
 - Reduce metric Parquet read/verification peak memory by decoding row-group batches
   without parallel column workers; preserve exact rows and global Arrow settings.
-
 
 - Add opt-in bounded larger MSIDX4 bulk extraction with incremental XOR cursors,
   preserving default limits, exact numeric provenance and source validation.
 
-
 - Read the observed extended Float64 event metadata profile for explicitly declared
   event inputs, retaining exact numeric and extension bytes with strict layout checks.
-
 
 - Preserve empty bucket-info index-time endpoints as unknown, allowing native
   buckets with partial annotations while retaining source checks and diagnostics.

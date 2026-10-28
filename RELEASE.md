@@ -50,3 +50,11 @@ contract and assets remain unchanged, and 1.0.0 remains the latest stable releas
 No new physical profile or indexed-search support is introduced. Qualification
 of existing development native binaries remains separate from production native
 wheel distribution.
+
+The next candidate, **1.1.0rc2**, packages nullable bucket-info annotations, the
+observed extended event metadata profile, opt-in bounded larger MSIDX4 bulk
+extraction and lower metric Parquet reader allocation peaks. It is being qualified;
+it has not been published. Its exact asset qualification and owner approval remain
+required. Published 1.1.0rc1 and stable 1.0.0 assets stay unchanged. Profile limits,
+original-input retention and physical extraction versus search-visibility boundaries
+continue to apply. Larger metric SQL/capture is not qualified by bulk export.
