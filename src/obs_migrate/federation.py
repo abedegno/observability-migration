@@ -357,10 +357,19 @@ class BucketSession:
             try:
                 frame=self._context.sql(sql,options=options)
                 schema=frame.schema();batches=[];size=0
-                for wrapped in frame.execute_stream():
-                    batch=wrapped.to_pyarrow();size+=batch.nbytes
-                    if size>self.max_result_bytes:raise ValueError('result Arrow byte limit exceeded')
-                    batches.append(batch)
+                stream=frame.execute_stream();failure=None
+                try:
+                    for wrapped in stream:
+                        batch=wrapped.to_pyarrow();size+=batch.nbytes
+                        if size>self.max_result_bytes:
+                            failure=ValueError('result Arrow byte limit exceeded');break
+                        batches.append(batch)
+                except BaseException as error:
+                    failure=error
+                # Native stream destruction can close a suspended Python generator.
+                # Release it before raising, while no Python exception is unwinding.
+                del stream
+                if failure is not None:raise failure
                 table=pa.Table.from_batches(batches,schema=schema)
             except Exception as error:raise ValueError('DataFusion SQL failed: '+str(error)) from error
             elapsed=perf_counter()-started

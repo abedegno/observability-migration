@@ -5,6 +5,8 @@
 - Add bounded exact metadata JSON projections to the existing opt-in native
   projection cache, with canonical decoding when an entry cannot be retained.
 - Expose the metadata cache budget and retained-byte/coverage accounting.
+- Release native query streams before raising result-limit errors, avoiding
+  a crash during error-path teardown.
 
 ## 0.59.0rc4 — 2026-10-28
 
