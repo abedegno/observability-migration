@@ -12,6 +12,12 @@ The fixtures are small, redistributable examples with original binary bytes:
   and an independent native CSV control. The manifest records source member paths
   and exact hashes; the samples are CC0.
 
+- `extended-events-10.6`: three controlled nonprivate CC0 HEC events with string
+  and Float64 indexed fields, produced by a network-disabled local Splunk 10.6.0.5
+  lab. The manifest binds original bucket bytes, original JSON inputs and an
+  independent offline native CSV reference. Source stability and stopped-service
+  observations are explicit in provenance; no NAS data or credentials are included.
+
 These samples demonstrate limited observed profiles. They do not certify every
 producer setting, DDSS layout, query semantic or proprietary format variation.
 Never substitute fabricated proprietary binary data for compatibility evidence.

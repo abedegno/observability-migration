@@ -40,3 +40,27 @@ containment or exact extrema. A violation of a known endpoint can still produce
 the existing diagnostic warning; it never removes an event. Malformed nonempty
 values and reversed complete bounds refuse. Journal timestamp decoding remains
 independent of these sidecar annotations.
+
+
+### Experimental extended event metadata
+
+An explicitly declared event index (`--index-type event` for a journal scan;
+event jobs already declare their inputs) can read the observed journal
+v1/alignment-5/opcode-39 Float64 extension profile. Unknown index types continue
+to refuse extended records; the event adapter still refuses metric index types.
+This does not identify an index type from opcode 39 alone.
+
+For this profile, metadata representation 10 is a byte offset into an original
+extended storage block. The adapter retains its key, operand, original wire and
+storage offset, adding `value_float64_bits_le_base64` and exact `value_float64_hex`
+to that entry in `metadata_json`. `decoder_state_json.extended_storage_base64`
+retains the complete block. Original `record_wire`, source identity, times and
+routing remain available. The existing schema-3 envelope is unchanged; extended
+rows identify decoder suffix `+event-float64-1`, and classic rows stay unchanged.
+
+Only finite Float64 values at unique aligned eight-byte offsets with complete
+block coverage are admitted, alongside representation-0 strings. Other extended
+opcodes, journal profiles, representations, overlaps, unused bytes and nonfinite
+values refuse. These are stored event fields, not metric measurements. Native
+physical export comparisons do not establish search-time extraction, knowledge
+objects, indexed search, or whole-index/snapshot equivalence.

@@ -9,6 +9,7 @@ import base64
 import hashlib
 import io
 import json
+import math
 import os
 from pathlib import Path
 import struct
@@ -21,6 +22,7 @@ from .source_identity import SourceIdentityError,normalize_sha256,require_sha256
 
 PIN = "d2885c63b36f115189f810eb0f43a888cc73c967"
 DECODER = f"splunk-ddss-python@{PIN}+obs-strict-5"
+EXTENDED_EVENT_DECODER = DECODER + "+event-float64-1"
 MAX_RECORD = 16 * 1024 * 1024
 MAX_DICTIONARY = 16 * 1024 * 1024
 MAX_STRINGS = 100_000
@@ -133,7 +135,9 @@ def open_source(path,*,max_decompressed_bytes=None,expected_sha256=None):
                     stream.close()
 
 
-def decoder_class(*, metric_storage=False, max_decompressed_bytes=None):
+def decoder_class(*, metric_storage=False, max_decompressed_bytes=None, extended_events=False):
+    if type(extended_events) is not bool or metric_storage and extended_events:
+        raise ValueError("extended event admission requires an event-only decoder")
     if max_decompressed_bytes is not None and (type(max_decompressed_bytes) is not int or max_decompressed_bytes<1):
         raise ValueError('decompressed byte limit must be a positive integer')
     try:
@@ -238,7 +242,7 @@ def decoder_class(*, metric_storage=False, max_decompressed_bytes=None):
                 offset += n
                 combined = key << 2 if self.opcode < 36 else key
                 representation, key_index = combined & 15, combined >> 4
-                supported = (0, 10) if metric_storage else (0, 8)
+                supported = (0, 10) if metric_storage or extended_events and self.opcode == 39 else (0, 8)
                 if representation not in supported:
                     raise JournalError(f"unsupported metadata representation {representation}")
                 if not 1 <= key_index <= len(strings):
@@ -294,7 +298,9 @@ def decoder_class(*, metric_storage=False, max_decompressed_bytes=None):
             if metric_storage and self.opcode != 39:
                 raise JournalError("unverified metric journal opcode; observed profile requires opcode 39")
             if not metric_storage and (self.opcode <= 2 or self.opcode & 4):
-                raise JournalError("oldstyle/extended storage events unsupported")
+                if not (extended_events and self.opcode == 39 and
+                        (self.header['version'], self.header['align_bits']) == (1, 5)):
+                    raise JournalError("oldstyle/extended storage events unsupported; extended profile requires declared event index")
             start = self.reader.pos
             length = self.reader.read_uvarint()
             prefix_end = self.reader.pos
@@ -327,13 +333,51 @@ def _decoder_warnings(time_profile,index_within_bounds,private_seen):
     return warnings
 
 
+
+def _extended_event_metadata(entries, extension):
+    """Observed aligned Float64 offsets; retain every operand and exact bit."""
+    if not extension or len(extension) % 8 or len(extension) > MAX_RECORD:
+        raise JournalError("unverified extended event storage length")
+    offsets = set()
+    result = []
+    for original in entries:
+        entry = dict(original)
+        if entry['representation'] == 10:
+            offset = int(entry['storage_offset'])
+            if offset < 0 or offset % 8 or offset + 8 > len(extension) or offset in offsets:
+                raise JournalError("invalid or overlapping extended event Float64 offset")
+            offsets.add(offset)
+            bits = extension[offset:offset+8]
+            value = struct.unpack('<d', bits)[0]
+            if not math.isfinite(value):
+                raise JournalError("nonfinite extended event Float64 is unverified")
+            entry['value_float64_bits_le_base64'] = base64.b64encode(bits).decode('ascii')
+            entry['value_float64_hex'] = value.hex()
+        elif entry['representation'] != 0:
+            raise JournalError("unverified extended event metadata representation")
+        result.append(entry)
+    if len(offsets) != len(extension) // 8:
+        raise JournalError("unreferenced extended event storage bytes")
+    return result
+
+
 def _event_row(decoder, context, sha, ordinal, *, index=None, bucket_id=None, object_uri=None, visibility="physical"):
     """One canonical row builder, shared by full scanning and addressed reads."""
     e = decoder.get_event()
     def binary(s):
         return s.encode("utf-8", "surrogateescape")
     metadata = decoder.metadata_entries
-    components = event_components(decoder.record_wire)
+    extended = decoder.record_wire[0] == 39
+    components = (event_components(decoder.record_wire, allow_extended=True) if extended
+                  else event_components(decoder.record_wire))
+    extension = None
+    if extended:
+        length = components['extended_storage_length']
+        end = len(decoder.record_wire) - len(e.message)
+        if length != e.extended_storage_len or length > end:
+            raise JournalError("invalid extended event block length")
+        extension = decoder.record_wire[end-length:end]
+        metadata = _extended_event_metadata(metadata, extension)
     index_candidate = decoder.base_index_time + signed32(components["index_delta_wire"])
     time_profile = (decoder.header.get("version") == 1 and
                     decoder.header.get("align_bits") == 5 and decoder.state_time_seen)
@@ -353,6 +397,9 @@ def _event_row(decoder, context, sha, ordinal, *, index=None, bucket_id=None, ob
              "active_host": decoder.active_host, "active_source": decoder.active_source,
              "active_sourcetype": decoder.active_source_type,
              "hash_hex": e.hash.hex(), "include_punctuation": e.include_punctuation}
+    if extended:
+        state['extended_storage_base64'] = base64.b64encode(extension).decode('ascii')
+        state['extended_event_profile'] = 'v1-align5-opcode39-float64-offsets'
     deleted = context.classify(decoder.record_offset, state)
     if visibility == "undeleted" and deleted:
         return None
@@ -368,7 +415,7 @@ def _event_row(decoder, context, sha, ordinal, *, index=None, bucket_id=None, ob
            "decompressed_offset": decoder.record_offset, "record_wire": decoder.record_wire,
            "metadata_json": json.dumps(metadata, sort_keys=True, separators=(",", ":")),
            "decoder_state_json": json.dumps(state, sort_keys=True, separators=(",", ":")),
-           "decoder_warnings": warnings, "decoder": DECODER}
+           "decoder_warnings": warnings, "decoder": EXTENDED_EVENT_DECODER if extended else DECODER}
 
 def events(path, *, experimental=False, index=None, bucket_id=None, object_uri=None, stats=None,
            visibility="physical", include_disabled=False, index_type="unknown",max_decompressed_bytes=None,_observer=None,expected_source_sha256=None):
@@ -376,7 +423,10 @@ def events(path, *, experimental=False, index=None, bucket_id=None, object_uri=N
     if not experimental:
         raise JournalError("journal decoder remains experimental; pass --experimental to run the journal harness")
     path = resolve(path)
-    cls = decoder_class() if max_decompressed_bytes is None else decoder_class(max_decompressed_bytes=max_decompressed_bytes)
+    options = {'extended_events': True} if index_type == 'event' else {}
+    if max_decompressed_bytes is not None:
+        options['max_decompressed_bytes'] = max_decompressed_bytes
+    cls = decoder_class(**options)
     ordinal = 0
     try:
         from .buckets import BucketContext

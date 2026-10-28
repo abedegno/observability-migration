@@ -1,0 +1,29 @@
+{
+  "image": "splunk/splunk:10.6.0-rhel9@sha256:27338fe2834cf056546f2453e3d80c6eefeb363d8a35952e904efab93e509f63",
+  "reader_version_label": "10.6.0.5",
+  "runtime_sha256": "fd8f65c60c9a1d601f22c43a05c5b0aa20cc87518a1388a6ef6639648e0a313a",
+  "mode": "csv",
+  "native_assisted": true,
+  "source_bucket_files": {
+    ".rawSize": "8e37bed9dff3949ffd23ae638260dff869f5cc26e551f2a9e5e289a8888949fa",
+    ".sizeManifest4.1": "0619da9a25a45fa6ba8b1419156c409b31b03f662e89335b3dc9fe41dda9df62",
+    "1534777202-1534777200-9668320091699789616.tsidx": "755d735a9e1459fd7f3c5f66af2f3f55f5c70c44b44585678afc3f8fc6b35cef",
+    "Hosts.data": "10e5f63b4cb222cfadb2db7d96c3900bb882ef59ccb32922d0691daab90e4773",
+    "SourceTypes.data": "4b5ee1833627e5e10c0e38e5858351943a900cdb17e679ad7d4e8450aa2c638b",
+    "Sources.data": "c91cbc71fcb6c90503926503917e3cc3efe32c99e2cf653669fe8d98de0dddf2",
+    "Strings.data": "bdacb6b602748bb054e89176c5b300b1feaafc4e0a73c7b19b104bfd552aad0b",
+    "bloomfilter": "f067f4f0fce6bdf0c0914f0130c35195097d20e93dc862423b472e3a6df4fcf4",
+    "bucket_info.csv": "f6c3710b829f496a17751d617b9194c9ff287f5274ad8b519ac8f34f275268e1",
+    "optimize.result": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rawdata/journal.zst": "4f36fb734e32c6ea2d5b6c654ed14e20c448557ff2bd49a4d7d3209f25061542",
+    "rawdata/slicemin.dat": "6dedb3df24d08d84d5b29772574826df00288aad3a6b36b2335be19f8f3d1956",
+    "rawdata/slicesv2.dat": "06c99320325843d6ba9540d20da43277f8e870b034d7e80ccc880611a11e7cab"
+  },
+  "output_sha256": "7a6e2587b6fa0551e2ec119e673b77703d82e2800e48a39e006faa25f8b53be0",
+  "output_bytes": 841,
+  "exit_code": 0,
+  "validated_source_rows": 3,
+  "expected_points": 3,
+  "source_bucket_completeness": "UNVERIFIED",
+  "scope": "exact acquired native csv; CSV acquisition is not metric point normalization; original TSIDX float fidelity is not independently verified"
+}

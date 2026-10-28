@@ -1,0 +1,44 @@
+[
+  {
+    "time": 1534777200.125,
+    "index": "matrix_events",
+    "host": "fixture-host",
+    "source": "controlled-extended-events",
+    "sourcetype": "obs_extended_event",
+    "event": "extended event 0 caf\u00e9",
+    "fields": {
+      "number_a": 1.25,
+      "number_b": -2.5,
+      "number_c": 1.0000000000000002,
+      "tag": "controlled caf\u00e9"
+    }
+  },
+  {
+    "time": 1534777201.125,
+    "index": "matrix_events",
+    "host": "fixture-host",
+    "source": "controlled-extended-events",
+    "sourcetype": "obs_extended_event",
+    "event": "extended event 1 caf\u00e9",
+    "fields": {
+      "number_a": 2.25,
+      "number_b": -3.5,
+      "number_c": 1.0000000000000002,
+      "tag": "controlled caf\u00e9"
+    }
+  },
+  {
+    "time": 1534777202.125,
+    "index": "matrix_events",
+    "host": "fixture-host",
+    "source": "controlled-extended-events",
+    "sourcetype": "obs_extended_event",
+    "event": "extended event 2 caf\u00e9",
+    "fields": {
+      "number_a": 3.25,
+      "number_b": -4.5,
+      "number_c": 1.0000000000000002,
+      "tag": "controlled caf\u00e9"
+    }
+  }
+]

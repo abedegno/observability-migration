@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Read the observed extended Float64 event metadata profile for explicitly declared
+  event inputs, retaining exact numeric and extension bytes with strict layout checks.
+
+
 - Preserve empty bucket-info index-time endpoints as unknown, allowing native
   buckets with partial annotations while retaining source checks and diagnostics.
 
