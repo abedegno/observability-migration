@@ -51,10 +51,14 @@ No new physical profile or indexed-search support is introduced. Qualification
 of existing development native binaries remains separate from production native
 wheel distribution.
 
-The next candidate, **1.1.0rc2**, packages nullable bucket-info annotations, the
-observed extended event metadata profile, opt-in bounded larger MSIDX4 bulk
-extraction and lower metric Parquet reader allocation peaks. It is being qualified;
-it has not been published. Its exact asset qualification and owner approval remain
-required. Published 1.1.0rc1 and stable 1.0.0 assets stay unchanged. Profile limits,
-original-input retention and physical extraction versus search-visibility boundaries
-continue to apply. Larger metric SQL/capture is not qualified by bulk export.
+The [1.1.0rc2 prerelease](https://github.com/abedegno/observability-migration/releases/tag/v1.1.0rc2)
+is published from commit `722b5d1d533a146893e39471eead569ac95a7e0b` after exact-asset
+qualification and owner approval. All five public asset downloads match the
+approved files and the immutable tag resolves to that build input. It packages
+nullable bucket-info annotations, the observed extended event metadata profile,
+opt-in bounded larger MSIDX4 bulk extraction and lower metric Parquet reader
+allocation peaks. Published 1.1.0rc1 and stable 1.0.0 assets stay unchanged;
+1.0.0 remains latest stable. Profile limits, original-input retention and physical
+extraction versus search-visibility boundaries continue to apply. Larger metric
+SQL/capture is not qualified by bulk export. Later documentation changes on main
+do not alter the frozen assets or their preparation-time qualification summary.
