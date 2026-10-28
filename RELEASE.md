@@ -32,3 +32,8 @@ The 0.59.0rc5 candidate adds bounded metadata projections and native query strea
 cleanup. Publication remains pending exact-asset qualification and owner approval.
 The optional native adapter requires separately built binaries; qualifying an
 existing development bridge does not qualify production native wheels.
+
+The 1.0.0 qualification build uses the finite [support contract](docs/support-contract.md)
+and [maintenance policy](SUPPORT.md). Its exact assets require fresh qualification
+and owner approval before stable publication. Existing experimental flags and
+optional provider exclusions remain unchanged.

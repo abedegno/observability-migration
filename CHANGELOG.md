@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 1.0.0 — qualification build, publication pending
+
+- Define the portable CLI/API support and maintenance contract; proprietary
+  profiles and optional native federation retain their explicit experimental flags.
+- Extend genuine gzip/Zstd native SQL residual, partial-cache, cross-bucket
+  provenance and failure/reuse coverage, with an optional reproducible SQL gate.
+
 ## 0.59.0rc5 — 2026-10-28
 
 - Add bounded exact metadata JSON projections to the existing opt-in native

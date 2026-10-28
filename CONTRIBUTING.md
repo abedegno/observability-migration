@@ -56,3 +56,22 @@ Compare unchanged files under the same interpreter, Arrow version, allocator and
 CPU/memory configuration. Choose a workload-specific budget: batch/count bounds
 are not a universal process RSS guarantee. Keep larger authorised inputs and raw
 benchmark records outside the public repository.
+
+## Optional native event SQL check
+
+With the optional DataFusion bridge installed, run the source/engine parity gate
+on an authorised immutable linked event bucket:
+
+```sh
+python scripts/benchmark_event_federation.py /offline/bucket --metadata-cache-bytes 33554432
+```
+
+Run separate processes with budgets 0, 8388608 and 33554432 for fallback/partial/
+full-cache observations. Coverage depends on the actual metadata cardinality.
+The tool compares actual SQL with a materialized full-canonical-row reference,
+reports initial source validation, reference construction and provider registration
+separately, and records SQL planning/execution time and scan work. The reference
+uses the same reader; this is engine equivalence, not independent format proof.
+Peak RSS includes reference data and queries. `--retain-opaque-trailer` is an
+explicit experimental opt-in when required. Keep original sources and raw results
+outside the public repository; one warm workload is not a capacity guarantee.

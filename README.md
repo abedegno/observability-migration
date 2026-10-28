@@ -79,3 +79,7 @@ DataFusion adapter.
 Original code is Apache-2.0. Bundled test data retains its own CC0 licence and
 provenance. The separately supplied decoder is MIT; see
 [third-party acknowledgements](THIRD_PARTY_NOTICES.md).
+
+The [offline access contract](docs/support-contract.md) defines the finite scope
+for a stable build. [Support and maintenance](SUPPORT.md) describes best-effort
+reporting, triage and release policy; optional federation remains experimental.

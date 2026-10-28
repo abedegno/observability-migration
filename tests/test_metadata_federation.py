@@ -98,3 +98,102 @@ def test_interrupt_releases_native_stream_while_exception_is_retained(monkeypatc
     caught.value.__traceback__ = None
     gc.collect()
     assert state['opened'] == closed_before_discard == 1
+
+
+# These real sources catch lost residuals and incorrect bounded-cache fallback.
+SOURCES = [
+    (ROOT/'stream-29', 512),
+    (ROOT/'db_1534766331_1534766040_301', 2048),
+    (ROOT.parent/'current-producer-10.6.0.5/db_1792972802_1792972800_0', 2048),
+]
+
+
+@pytest.mark.parametrize('path,partial_budget', SOURCES, ids=['gzip-repeated','gzip-diverse','zstd'])
+@pytest.mark.parametrize('coverage', ['zero','partial','full'])
+@pytest.mark.parametrize('pushdown', [False,True])
+def test_bounded_metadata_and_existing_candidates_preserve_all_sql_residuals(path, partial_budget, coverage, pushdown):
+    budget = {'zero':0, 'partial':partial_budget, 'full':32*1024**2}[coverage]
+    with EventBucket(path, experimental=True, offline_snapshot=True, backend='journal',
+                     cache_projections=True, metadata_cache_bytes=budget) as source:
+        rows = list(source.records())
+        cache = source.report()['metadata_projection_cache']
+        assert cache['charged_bytes'] <= budget
+        if coverage == 'partial':
+            assert 0 < cache['cached_records'] < len(rows)
+        else:
+            assert cache['cached_records'] == (len(rows) if coverage=='full' else 0)
+        plain = datafusion.SessionContext()
+        plain.register_record_batches('events', [pa.Table.from_pylist(rows, schema=SCHEMA).to_batches()])
+        session = BucketSession()
+        session.register_native_event_snapshot('events', source,
+                                              routing_pushdown=pushdown, time_pushdown=pushdown)
+        host = rows[0]['host'].hex()
+        seconds = rows[len(rows)//2]['event_time']['seconds']
+        queries = [
+            'select record_ordinal,metadata_json from events order by record_ordinal',
+            'select record_ordinal,metadata_json from events limit 1',
+            "select record_ordinal,metadata_json,event_time from events where (metadata_json like '%wire%' and record_ordinal%2=0) or record_ordinal=1 order by record_ordinal",
+            f"select record_ordinal,metadata_json from events where host=decode('{host}','hex') and event_time['seconds']>={seconds} order by record_ordinal",
+            f"select record_ordinal,metadata_json from events where event_time['seconds']<{seconds} or record_ordinal%3=0 order by record_ordinal",
+            'select record_ordinal,metadata_json from events where is_deleted is null or is_deleted order by record_ordinal',
+            'select metadata_json,count(*) as n from events group by metadata_json order by metadata_json',
+            'select count(*) as n,sum(length(metadata_json)) as bytes from events',
+            'select record_ordinal from events where false',
+            'select record_ordinal,metadata_json from events order by record_ordinal',
+        ]
+        saw_candidates = False
+        for sql in queries:
+            expected = [row for batch in plain.sql(sql).collect() for row in batch.to_pylist()]
+            result = session.sql(sql)
+            assert result.table.to_pylist() == expected, sql
+            assert result.manifest['sources']['events']['snapshot_sha256'] == source.snapshot_sha256
+            assert result.manifest['indexed_search_supported'] is False
+            for scan in result.manifest['native_scans']['events']:
+                saw_candidates |= scan['sql_pruning_applied']
+                if pushdown:
+                    assert scan['candidate_events'] <= scan['base_candidate_events']
+        if pushdown:
+            assert saw_candidates
+        # An early LIMIT and an empty scan must not prevent complete full-row reuse.
+        assert list(source.records()) == rows
+
+
+def test_cross_bucket_union_join_preserves_duplicate_ordinals_and_source_provenance():
+    from contextlib import ExitStack
+    with ExitStack() as stack:
+        session = BucketSession()
+        plain = datafusion.SessionContext()
+        snapshots = {}
+        for name,(path,budget) in zip(('left_events','right_events'), (SOURCES[0],SOURCES[2])):
+            source = stack.enter_context(EventBucket(path, experimental=True, offline_snapshot=True,
+                backend='journal', cache_projections=True, metadata_cache_bytes=budget,
+                index=name, bucket_id=name))
+            snapshots[name] = source.snapshot_sha256
+            table = pa.Table.from_pylist(list(source.records()), schema=SCHEMA)
+            plain.register_record_batches(name, [table.to_batches()])
+            session.register_native_event_snapshot(name, source, routing_pushdown=True, time_pushdown=True)
+        queries = [
+            "select bucket_id,source_sha256,record_ordinal,raw,metadata_json from left_events union all select bucket_id,source_sha256,record_ordinal,raw,metadata_json from right_events order by bucket_id,record_ordinal",
+            'select a.record_ordinal,a.bucket_id as a_bucket,b.bucket_id as b_bucket,a.metadata_json as a_meta,b.metadata_json as b_meta from left_events a join right_events b on a.record_ordinal=b.record_ordinal where length(a.metadata_json)>0 order by a.record_ordinal',
+            'select count(*) as n from left_events',
+        ]
+        for sql in queries:
+            result = session.sql(sql)
+            expected = [row for batch in plain.sql(sql).collect() for row in batch.to_pylist()]
+            assert result.table.to_pylist() == expected
+            # Provenance is conservatively all registered sources, even for count(left).
+            assert {name:r['snapshot_sha256'] for name,r in result.manifest['sources'].items()} == snapshots
+
+
+@pytest.mark.parametrize('cap', ['input','result'])
+def test_failed_query_can_reuse_the_same_session_and_snapshot(cap):
+    with EventBucket(ROOT/'stream-29', experimental=True, offline_snapshot=True,
+                     backend='journal', cache_projections=True, metadata_cache_bytes=512) as source:
+        session = BucketSession(**{'max_'+cap+'_bytes':512})
+        session.register_native_event_snapshot('events', source)
+        with pytest.raises(ValueError, match='byte limit'):
+            session.sql('select metadata_json from events')
+        assert session.sql('select count(*) as n from events').table.to_pylist() == [{'n':29}]
+        assert session.sql('select record_ordinal from events order by record_ordinal').table.to_pylist() == [
+            {'record_ordinal':i} for i in range(29)]
+        assert len(list(source.records())) == 29

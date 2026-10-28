@@ -55,3 +55,10 @@ identity, query byte caps, cancellation handling and engine residual filters
 remain required. This optimization adds no metadata predicate pushdown or
 compressed seeking. Optional native-engine tests compare projections, filters,
 limits, aggregates and joins with an ordinary materialized DataFusion reference.
+
+Optional qualification covers zero, partial and full metadata caches on genuine
+gzip/Zstd sources, routing/time candidates with SQL residuals, cross-bucket
+UNION/join provenance and same-session recovery after byte-cap failures. The
+[developer SQL gate](../scripts/benchmark_event_federation.py) measures actual
+engine execution separately from initial validation and reference construction.
+It does not establish a stable native API or promote new pruning/search support.
