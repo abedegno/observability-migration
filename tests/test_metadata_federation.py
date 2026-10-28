@@ -197,3 +197,33 @@ def test_failed_query_can_reuse_the_same_session_and_snapshot(cap):
         assert session.sql('select record_ordinal from events order by record_ordinal').table.to_pylist() == [
             {'record_ordinal':i} for i in range(29)]
         assert len(list(source.records())) == 29
+
+
+@pytest.mark.parametrize('budget', [0,512,32*1024**2])
+def test_cancelled_query_reuses_session_while_original_exception_is_retained(budget, monkeypatch):
+    """Catch a leaked session/source lock without discarding the caller's traceback."""
+    from datafusion.record_batch import RecordBatchStream
+    with EventBucket(ROOT/'stream-29', experimental=True, offline_snapshot=True,
+                     backend='journal', cache_projections=True, metadata_cache_bytes=budget) as source:
+        rows = list(source.records())
+        session = BucketSession()
+        session.register_native_event_snapshot('events', source)
+        original = RecordBatchStream.__next__
+
+        def interrupted(self):
+            original(self)
+            raise KeyboardInterrupt('controlled cancellation after a genuine event batch')
+
+        with monkeypatch.context() as patch:
+            patch.setattr(RecordBatchStream, '__next__', interrupted)
+            with pytest.raises(KeyboardInterrupt) as caught:
+                session.sql('select record_ordinal,raw,metadata_json from events')
+        traceback = caught.value.__traceback__
+        assert traceback is not None
+        # No traceback clearing, garbage collection or new session before recovery.
+        assert session.sql('select count(*) as n from events').table.to_pylist() == [{'n':29}]
+        names = ('record_ordinal','raw','metadata_json','event_time')
+        recovered = session.sql('select '+','.join(names)+' from events order by record_ordinal')
+        assert recovered.table.to_pylist() == [{name:row[name] for name in names} for row in rows]
+        assert caught.value.__traceback__ is traceback
+        assert list(source.records()) == rows

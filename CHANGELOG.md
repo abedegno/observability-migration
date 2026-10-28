@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Verify native query recovery on the same session after cancellation while
+  the caller retains the original exception traceback, across cache budgets.
+
 ## 1.0.0 — 2026-10-28
 
 - Define the portable CLI/API support and maintenance contract; proprietary
