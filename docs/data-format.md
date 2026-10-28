@@ -86,8 +86,11 @@ Export/verify receipts identify explicit limits separately. Optional
 `msidx.records(..., limits=profile, stats=dict)` reports numeric work and peak cursor
 charge; `complete` becomes true only after full source exhaustion and final source
 checks. Closing a partial iterator releases cursor buffers and records incomplete
-validation. Larger profiles apply to MSIDX4 file/bucket bulk export and verification;
-legacy readers and capture/selection/SQL/federation retain existing limits.
+validation. Larger profiles apply to MSIDX4 file/bucket bulk export and verification,
+and explicitly opted-in immutable capture creation, reopening and capture SQL.
+Ordinary file/bucket selection, snapshot SQL and legacy readers retain existing
+limits. Capture policy, provider budgets and scope are described in the
+[federation guide](federation.md#explicit-larger-metric-captures).
 
 
 Metric Parquet traversal validates the complete Arrow schema and reads one row
