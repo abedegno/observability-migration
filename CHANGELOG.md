@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## 1.0.0 — qualification build, publication pending
+## 1.0.0 — 2026-10-28
 
 - Define the portable CLI/API support and maintenance contract; proprietary
   profiles and optional native federation retain their explicit experimental flags.

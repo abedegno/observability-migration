@@ -28,7 +28,7 @@ Confirmed fidelity defects need affected-version/profile and recovery guidance;
 retain originals and re-extract through a verified path rather than repairing or
 dropping proprietary records silently.
 
-The [offline access contract](docs/support-contract.md) defines the proposed
-stable build's finite interface and profile boundary. Experimental interfaces and
+The [offline access contract](docs/support-contract.md) defines the stable
+release's finite interface and profile boundary. Experimental interfaces and
 format flags remain explicit. Stable publication requires its own exact-asset
 approval; prerelease publication does not silently promote those interfaces.

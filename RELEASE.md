@@ -22,7 +22,7 @@ For a release candidate:
 The [0.59.0rc3 prerelease](https://github.com/abedegno/observability-migration/releases/tag/v0.59.0rc3)
 is published from commit `5f196a0d5afc34377efe0be760d533266bc79502`.
 Its attached qualification summary describes the exact tested assets. PyPI
-publication, production native wheels and stable 1.0 promotion remain separate work.
+publication and production native wheels remain separate work.
 
 The [0.59.0rc4 prerelease](https://github.com/abedegno/observability-migration/releases/tag/v0.59.0rc4)
 is published from commit `9e4fcca2a21e69a5e3ebdf1fe4fe0e2a746e403f`. Later
@@ -34,7 +34,9 @@ metadata projections and native query stream cleanup.
 The optional native adapter requires separately built binaries; qualifying an
 existing development bridge does not qualify production native wheels.
 
-The 1.0.0 qualification build uses the finite [support contract](docs/support-contract.md)
-and [maintenance policy](SUPPORT.md). Its exact assets require fresh qualification
-and owner approval before stable publication. Existing experimental flags and
-optional provider exclusions remain unchanged.
+The [1.0.0 stable release](https://github.com/abedegno/observability-migration/releases/tag/v1.0.0)
+is published from commit `2dd48792667a9e090a830b6b735dcab238aba359` after exact-asset
+qualification and owner approval. Its finite [support contract](docs/support-contract.md)
+and [maintenance policy](SUPPORT.md) apply; proprietary-profile experimental flags
+and optional native provider exclusions remain unchanged. Later documentation
+updates on main do not alter the frozen release assets.

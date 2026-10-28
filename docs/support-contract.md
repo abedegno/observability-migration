@@ -1,8 +1,9 @@
 # Offline access support contract
 
-This contract defines the scope of the 1.0.0 qualification build. It takes effect
-for a stable release only when that exact build is approved and published. A
-prerelease, source checkout or passing test count does not establish stable support.
+This contract applies to the approved, published
+[1.0.0 stable release](https://github.com/abedegno/observability-migration/releases/tag/v1.0.0).
+A prerelease, source checkout or passing test count does not independently establish
+stable support beyond this finite contract.
 
 ## Supported surface
 
