@@ -83,9 +83,10 @@ def read_export(path, format):
         with pq.ParquetFile(path) as file:
             if not file.schema_arrow.equals(SCHEMA, check_metadata=True):
                 raise ValueError("export schema mismatch")
-            # Preserve exporter byte bounds: do not merge many large row groups.
+            # Keep row-group bounds and avoid retained worker-pool allocations
+            # when decoding wide canonical rows; leave global Arrow threads alone.
             for group in range(file.num_row_groups):
-                for batch in file.iter_batches(batch_size=1024, row_groups=[group]):
+                for batch in file.iter_batches(batch_size=1024, row_groups=[group], use_threads=False):
                     yield from batch.to_pylist()
     else:
         raise ValueError("unknown format")

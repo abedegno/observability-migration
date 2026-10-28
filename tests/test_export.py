@@ -46,12 +46,16 @@ def test_batch_bounds_and_order(row):
     assert [r["record_ordinal"] for b in result for r in b.to_pylist()] == list(range(50))
 
 
-def test_verify_detects_value_and_count_changes(tmp_path, row):
+@pytest.mark.parametrize("format", ["ndjson", "parquet"])
+def test_verify_detects_value_and_count_changes(tmp_path, row, format):
     path = tmp_path / "rows"
-    export(iter([row]), path, "ndjson")
-    for expected in ([], [row, row], [dict(row, raw=b"changed")]):
+    export(iter([row]), path, format)
+    for expected in ([], [row, row], [dict(row, raw=b"changed")],
+                     [dict(row, event_time={"seconds": 1534776480, "fraction": "0.1234567891"})],
+                     [dict(row, metadata_json="[]")],
+                     [dict(row, source_sha256="b"*64)]):
         with pytest.raises(ValueError, match="record"):
-            verify(iter(expected), path, "ndjson")
+            verify(iter(expected), path, format)
 
 
 def test_schema_rejection(tmp_path):

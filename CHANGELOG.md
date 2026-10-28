@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Reduce worker-pool memory overhead during Parquet export verification and
+  manifest-managed dataset reads without changing schema or field comparisons.
+
 ## 0.59.0rc3 — 2026-10-28
 
 - Establish the curated source repository, focused documentation and a small,
