@@ -62,3 +62,31 @@ UNION/join provenance and same-session recovery after byte-cap failures. The
 [developer SQL gate](../scripts/benchmark_event_federation.py) measures actual
 engine execution separately from initial validation and reference construction.
 It does not establish a stable native API or promote new pruning/search support.
+
+### Explicit larger metric captures
+
+`capture.create(..., limits=LARGE_METRICS)` and
+`CapturedBucket(..., limits=LARGE_METRICS)` reuse the finite MSIDX4 profile from
+`obs_migrate.metric_limits`. CLI equivalents are
+`metrics capture-create ... --resource-profile large` and
+`metrics capture-sql ... --resource-profile large`. Supply the profile explicitly
+on both creation and reopening; the artifact never grants itself larger limits.
+Defaults and legacy MSIDX1/2 behaviour remain unchanged; explicit profiles refuse
+legacy formats. Full physical preflight remains mandatory on every new open,
+including queries that later select no rows.
+
+The policy stays outside the capture manifest, original member bytes, source
+snapshot and logical query identity. Explicit receipts and source reports record
+it separately. Cursors retain at most the profile's encoded-state allowance per
+reader and are released after preflight, scans, early close and capture close.
+This is not a process RSS limit. Capture file/point, Arrow input/result and engine
+budgets remain independent and unchanged. Multiple slices/readers have separate
+cursor budgets.
+
+The direct native provider can count or project bounded columns without encoding
+all canonical fields. The DatasetTable provider still materializes its explicit
+selection through bounded Parquet; a broad query can refuse the materialization
+budget even if its final result is only a count. Select a bounded source predicate
+or use a qualified native projection rather than increasing budgets implicitly.
+Both retain SQL residual filters, physical-data semantics and provenance. Ordinary
+file/bucket selection and snapshot SQL do not inherit this opt-in profile.

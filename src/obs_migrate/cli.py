@@ -94,6 +94,7 @@ def main(argv=None):
             p.add_argument("--offline-snapshot",action="store_true");p.add_argument("--include-inactive",action="store_true")
         p.add_argument("--experimental",action="store_true")
         if name=="capture-sql":
+            p.add_argument("--resource-profile",choices=["default","large"],default="default")
             p.add_argument("--capture-sha256",required=True)
             p.add_argument("--provider",choices=["dataset","native"],default="dataset",help="lazy Parquet bridge or optional direct Rust/Arrow provider")
         for field in ("metric-name","host","source","sourcetype"):
@@ -117,6 +118,7 @@ def main(argv=None):
     p.add_argument('--out',required=True);p.add_argument('--format',choices=['parquet','arrow'],default='parquet')
     for field in ('input','result','engine'):p.add_argument('--max-'+field+'-bytes',type=int,default=256*1024**2)
     p=metric_commands.add_parser("capture-create",help="lossless native capture for immutable in-process validation reuse")
+    p.add_argument("--resource-profile",choices=["default","large"],default="default")
     p.add_argument("path");p.add_argument("--out",required=True)
     p.add_argument("--experimental",action="store_true");p.add_argument("--offline-snapshot",action="store_true")
     p.add_argument("--include-inactive",action="store_true")
@@ -252,7 +254,7 @@ def main(argv=None):
             elif args.command=="capture-create":
                 from .capture import create
                 result=create(args.path,args.out,experimental=args.experimental,
-                    offline_snapshot=args.offline_snapshot,include_inactive=args.include_inactive)
+                    offline_snapshot=args.offline_snapshot,include_inactive=args.include_inactive,limits=limits)
             elif args.command.startswith(("select-","bucket-select-")) or args.command in ("bucket-sql","capture-sql"):
                 from . import metric_select
                 pairs=[]
@@ -269,7 +271,7 @@ def main(argv=None):
                                           max_engine_bytes=args.max_engine_bytes)
                     if args.command=="capture-sql":
                         from .capture import CapturedBucket
-                        with CapturedBucket(args.path,expected_sha256=args.capture_sha256,experimental=args.experimental) as captured:
+                        with CapturedBucket(args.path,expected_sha256=args.capture_sha256,experimental=args.experimental,limits=limits) as captured:
                             register=session.register_native_capture if args.provider=="native" else session.register_capture
                             register("points",captured,predicate,index=args.index,bucket_id=args.bucket_id)
                             result=session.sql(args.sql).write(args.out,args.format)

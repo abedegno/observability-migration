@@ -15,7 +15,7 @@ import threading
 from types import MappingProxyType
 import zipfile
 
-from . import bucket_select,metric_bucket,metric_select,msidx1,msidx2,msidx
+from . import bucket_select,metric_bucket,metric_select,metric_limits,metric_storage,msidx1,msidx2,msidx
 from .export import atomic_output
 
 FORMAT='obs-immutable-metric-capture'
@@ -59,13 +59,13 @@ def _directory(data):
     if len(data)>=42 and data[-42:-38]==b'PK\x06\x07':raise ValueError('ZIP64 capture is unsupported')
 
 
-def create(path,output,*,experimental=False,offline_snapshot=False,include_inactive=False):
+def create(path,output,*,experimental=False,offline_snapshot=False,include_inactive=False,limits=None):
     """Atomic no-overwrite capture, with original bytes of every inventoried file."""
     if not experimental:raise ValueError('capture is experimental')
     output=Path(output)
     if output.resolve().is_relative_to(Path(path).resolve()):raise ValueError('capture output must be outside source bucket')
     if output.exists() or output.is_symlink():raise FileExistsError('output already exists; overwrite disabled')
-    snapshot=metric_bucket.Snapshot(path,offline_snapshot=offline_snapshot,include_inactive=include_inactive)
+    snapshot=metric_bucket.Snapshot(path,offline_snapshot=offline_snapshot,include_inactive=include_inactive,limits=limits)
     if snapshot.reader not in (msidx1,msidx2,msidx):raise ValueError('capture requires verified MSIDX1/MSIDX2/MSIDX4 profiles')
     if sum(f['bytes'] for f in snapshot.manifest['files'].values())>MAX_BYTES-MAX_MANIFEST-MAX_CENTRAL:
         raise ValueError('capture source byte limit exceeded')
@@ -84,7 +84,7 @@ def create(path,output,*,experimental=False,offline_snapshot=False,include_inact
                 if {'bytes':len(data),'sha256':_sha(data)}!=snapshot.manifest['files'][name]:
                     raise ValueError('source changed during capture')
                 if name in snapshot.slices:
-                    total_points+=metric_select._Source(data,_sha(data),snapshot.reader).total
+                    total_points+=metric_select._Source(data,_sha(data),snapshot.reader,limits=limits).total
                     if total_points>MAX_POINTS:raise ValueError('capture point limit exceeded')
                 archive.writestr('source/'+name,data)
             if snapshot.external:
@@ -95,7 +95,8 @@ def create(path,output,*,experimental=False,offline_snapshot=False,include_inact
         if stream.tell()>MAX_BYTES:raise ValueError('capture artifact byte limit exceeded')
     wire=_read(output,MAX_BYTES)
     return {'format':FORMAT,'capture_sha256':_sha(wire),'capture_bytes':len(wire),
-            'snapshot_sha256':snapshot.sha256,'source_files':len(snapshot.files)}
+            'snapshot_sha256':snapshot.sha256,'source_files':len(snapshot.files),
+            **({'metric_resource_profile':snapshot.limits.describe()} if snapshot.limits is not None else {})}
 
 
 class CapturedBucket:
@@ -105,10 +106,11 @@ class CapturedBucket:
     cannot affect an existing object. Expected SHA must come from the capture
     receipt/trusted caller, not from an adjacent untrusted validation marker.
     """
-    def __init__(self,path,*,expected_sha256,experimental=False):
+    def __init__(self,path,*,expected_sha256,experimental=False,limits=None):
         if not experimental:raise ValueError('captured metrics are experimental')
         if not isinstance(expected_sha256,str) or len(expected_sha256)!=64 or any(c not in '0123456789abcdef' for c in expected_sha256):
             raise ValueError('a lowercase expected capture SHA-256 is required')
+        self.limits=metric_limits.validate(limits)
         data=_read(path,MAX_BYTES)
         if _sha(data)!=expected_sha256:raise ValueError('capture SHA-256 mismatch; validation cannot be reused')
         self.sha256=expected_sha256;self.size=len(data);self.closed=False;self._lock=threading.Lock()
@@ -128,6 +130,7 @@ class CapturedBucket:
                     raise ValueError('unsupported capture manifest')
                 reader=MODULES.get(manifest['source_format'])
                 if reader is None:raise ValueError('unsupported capture source format')
+                metric_storage.record_options(reader,self.limits)
                 snapshot=manifest['snapshot_manifest']
                 if not isinstance(snapshot,dict):raise ValueError('invalid capture snapshot object')
                 if _sha(metric_bucket._json(snapshot))!=manifest['snapshot_sha256']:raise ValueError('capture snapshot digest mismatch')
@@ -181,7 +184,7 @@ class CapturedBucket:
             for name in slices:
                 match=metric_bucket.SLICE.fullmatch(name)
                 if match is None:raise ValueError('invalid capture slice name')
-                source=metric_select._Source(pinned[name],files[name]['sha256'],reader)
+                source=metric_select._Source(pinned[name],files[name]['sha256'],reader,limits=self.limits)
                 source._posting_cache_limit=MAX_CACHED_MEMBERS//len(slices)
                 total_points+=source.total
                 if total_points>MAX_POINTS:raise ValueError('capture point limit exceeded')
@@ -210,7 +213,9 @@ class CapturedBucket:
     def close(self):
         if not self._lock.acquire(blocking=False):raise ValueError('captured bucket scan is active')
         try:
-            self.closed=True;self._sources.clear();self._files=MappingProxyType({})
+            self.closed=True
+            for source in self._sources.values():source.close()
+            self._sources.clear();self._files=MappingProxyType({})
         finally:self._lock.release()
 
     def __enter__(self):self.check();return self
@@ -242,7 +247,8 @@ class CapturedSelection:
             'snapshot_manifest':m['snapshot_manifest'],'slices':slices,
             'fully_validated_points':sum(s['fully_validated_points'] for s in slices),
             'candidate_points':sum(s['candidate_points'] for s in slices),'full_preflight_scan':True,
-            'performance_claim':False,'physical_predicate_selection':True,'search_visibility':'UNVERIFIED','indexed_search_supported':False})
+            'performance_claim':False,'physical_predicate_selection':True,'search_visibility':'UNVERIFIED','indexed_search_supported':False,
+            **({'metric_resource_profile':capture.limits.describe()} if capture.limits is not None else {})})
 
     def report(self):self.capture.check();return json.loads(self._report)
 
@@ -252,10 +258,13 @@ class CapturedSelection:
         try:
             c.check();first=True;m=c.manifest;snapshot=m['snapshot_manifest']
             for name,plan in self._plans.items():
-                for row in c._sources[name]._emit(plan,self.index,self.bucket_id):
-                    state=json.loads(row['storage_json']);state.update(bucket_snapshot_sha256=m['snapshot_sha256'],slice_file=name,bucket_query_sha256=self.sha256)
-                    if first:state['bucket_snapshot_manifest']=snapshot;first=False
-                    row['storage_json']=metric_bucket._json(state).decode();yield row
+                rows=c._sources[name]._emit(plan,self.index,self.bucket_id)
+                try:
+                    for row in rows:
+                        state=json.loads(row['storage_json']);state.update(bucket_snapshot_sha256=m['snapshot_sha256'],slice_file=name,bucket_query_sha256=self.sha256)
+                        if first:state['bucket_snapshot_manifest']=snapshot;first=False
+                        row['storage_json']=metric_bucket._json(state).decode();yield row
+                finally:rows.close()
         finally:c._lock.release()
 
     def batches(self):yield from self.reader.batches(self.records())

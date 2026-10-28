@@ -227,3 +227,38 @@ def test_cancelled_query_reuses_session_while_original_exception_is_retained(bud
         assert recovered.table.to_pylist() == [{name:row[name] for name in names} for row in rows]
         assert caught.value.__traceback__ is traceback
         assert list(source.records()) == rows
+
+
+@pytest.mark.parametrize('provider',['dataset','native'])
+def test_explicit_metric_capture_residuals_and_retained_interrupt_reuse(tmp_path,monkeypatch,provider):
+    from obs_migrate import capture,metric_limits,msidx
+    from datafusion.record_batch import RecordBatchStream
+    root=next((ROOT.parent/'metric-xor-9').glob('db_*'));path=tmp_path/'metrics.zip'
+    receipt=capture.create(root,path,experimental=True,offline_snapshot=True,limits=metric_limits.LARGE_METRICS)
+    with capture.CapturedBucket(path,expected_sha256=receipt['capture_sha256'],experimental=True,limits=metric_limits.LARGE_METRICS) as source:
+        rows=list(source.select().records());reference=datafusion.SessionContext()
+        reference.register_record_batches('points',[pa.Table.from_pylist(rows,schema=msidx.SCHEMA).to_batches()])
+        session=BucketSession();register=session.register_native_capture if provider=='native' else session.register_capture
+        register('points',source)
+        for sql in ('select count(*) as n from points',
+                    'select point_ordinal,indexed_time,measurements from points where point_ordinal%2=0 order by point_ordinal',
+                    'select * from points order by point_ordinal limit 3',
+                    'select * from points where point_ordinal<0'):
+            expected=reference.sql(sql).to_arrow_table();actual=session.sql(sql)
+            assert actual.table.to_pylist()==expected.to_pylist()
+            assert actual.table.schema.equals(expected.schema,check_metadata=False)
+        original=RecordBatchStream.__next__
+        def interrupted(stream):
+            original(stream)
+            raise KeyboardInterrupt('controlled cancellation after genuine metric batch')
+        with monkeypatch.context() as patch:
+            patch.setattr(RecordBatchStream,'__next__',interrupted)
+            with pytest.raises(KeyboardInterrupt) as caught:session.sql('select measurements from points')
+        assert caught.value.__traceback__ is not None
+        assert all(s.reader.work_report()['cursor_bytes']==0 for s in source._sources.values())
+        assert session.sql('select count(*) as n from points').table.to_pylist()==[{'n':1201}]
+        session.max_result_bytes=1
+        with pytest.raises(ValueError,match='byte limit'):session.sql('select measurements from points')
+        session.max_result_bytes=256*1024**2
+        assert session.sql('select count(*) as n from points').table.to_pylist()==[{'n':1201}]
+        assert all(s.reader.work_report()['cursor_bytes']==0 for s in source._sources.values())

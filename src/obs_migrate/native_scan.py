@@ -145,7 +145,10 @@ class NativeScan:
                             row['storage_json']=metric_bucket._json(state).decode()
                         if decode_names!=names:row={key:row[key] for key in names}
                         yield row
-                finally:rows.close()
+                finally:
+                    # Closing an explicit-profile iterator releases shared reader
+                    # cursors; serialize with other scans just like next(rows).
+                    with self.capture._lock:rows.close()
         rows=annotated()
         try:
             for batch in _batches(rows,projected,min(self.max_bytes,8*1024**2)):

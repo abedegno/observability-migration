@@ -74,10 +74,10 @@ class Plan:
 
 
 class _Source:
-    def __init__(self,data,sha,module):
+    def __init__(self,data,sha,module,*,limits=None):
         self.data=data;self.sha256=sha;self.module=module;self.closed=False
         self.stamp=None if type(data) is bytes else msidx._stable(os.fstat(data.fd))
-        self.reader=module._Reader(data)
+        self.reader=module._Reader(data,**metric_storage.record_options(module,limits))
         self._posting_cache={};self._cached_members=0;self._posting_cache_limit=1_000_000
         # Validate *all* physical rows before any plan or empty result. Unsupported
         # data cannot disappear merely because a predicate excludes its points.
@@ -85,11 +85,14 @@ class _Source:
         # Only immutable captures retain a packed time index: 8-byte ticks plus
         # 4-byte ordinals per point, bounded by existing capture point caps.
         point_times=array('q') if self.stamp is None else None
-        for row in self.reader.rows(sha,None,None):
-            self.total+=1;seconds=row['indexed_time']['seconds']
-            if point_times is not None:point_times.append(ticks(**row['indexed_time']))
-            self.minimum_seconds=seconds if self.minimum_seconds is None else min(self.minimum_seconds,seconds)
-            self.maximum_seconds=seconds if self.maximum_seconds is None else max(self.maximum_seconds,seconds)
+        try:
+            for row in self.reader.rows(sha,None,None):
+                self.total+=1;seconds=row['indexed_time']['seconds']
+                if point_times is not None:point_times.append(ticks(**row['indexed_time']))
+                self.minimum_seconds=seconds if self.minimum_seconds is None else min(self.minimum_seconds,seconds)
+                self.maximum_seconds=seconds if self.maximum_seconds is None else max(self.maximum_seconds,seconds)
+        finally:
+            self.release_cursors()
         self._time_ticks=self._time_ordinals=None
         if point_times is not None:
             order=sorted(range(self.total),key=point_times.__getitem__)
@@ -115,6 +118,12 @@ class _Source:
                 for token in tokens:self.lookup.setdefault(token,set()).add(did)
             self.strategy='msidx4_dimension_set_intersection' if module is msidx else 'msidx2_dimension_set_intersection'
         self.check()
+
+    def release_cursors(self):
+        if self.module is msidx:self.reader.close_cursors()
+
+    def close(self):
+        self.release_cursors();self.closed=True
 
     def check(self):
         if self.closed:raise ValueError('metric selection source is closed')
@@ -197,11 +206,14 @@ class _Source:
             if plan.predicate.dimensions:required.add('dimensions')
             if plan.predicate.time_range is not None:required.add('indexed_time')
             options['columns']=tuple(required)
-        for row in self.reader.rows(self.sha256,index,bucket_id,**options):
-            if not plan.predicate.matches(row):raise ValueError('candidate predicate residual mismatch')
-            count+=1;yield row if columns is None else {key:row[key] for key in columns}
-        if count!=len(plan.point_ids):raise ValueError('candidate cardinality mismatch')
-        self.check()
+        try:
+            for row in self.reader.rows(self.sha256,index,bucket_id,**options):
+                if not plan.predicate.matches(row):raise ValueError('candidate predicate residual mismatch')
+                count+=1;yield row if columns is None else {key:row[key] for key in columns}
+            if count!=len(plan.point_ids):raise ValueError('candidate cardinality mismatch')
+            self.check()
+        finally:
+            self.release_cursors()
 
     def records(self,predicate,*,index=None,bucket_id=None):
         yield from self._emit(self.plan(predicate),index,bucket_id)

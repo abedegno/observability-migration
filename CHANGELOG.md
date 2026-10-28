@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Extend explicit bounded MSIDX4 resource profiles to immutable capture creation,
+  reopening and capture SQL, preserving defaults, identities and source checks.
+  Release incremental numeric cursors on preflight/scan completion and interruption.
+
 ## 1.1.0rc2 — 2026-10-28
 
 - Reduce metric Parquet read/verification peak memory by decoding row-group batches
