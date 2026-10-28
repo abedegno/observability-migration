@@ -68,6 +68,7 @@ DataFusion adapter.
 ## Documentation
 
 - [Usage and recovery](docs/usage.md)
+- [Event jobs and S3 acquisition](docs/jobs-and-s3.md)
 - [Supported formats and limitations](docs/formats.md)
 - [Event data contract](docs/data-format.md)
 - [Optional federation](docs/federation.md)
