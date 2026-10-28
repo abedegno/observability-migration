@@ -28,8 +28,9 @@ The [0.59.0rc4 prerelease](https://github.com/abedegno/observability-migration/r
 is published from commit `9e4fcca2a21e69a5e3ebdf1fe4fe0e2a746e403f`. Later
 changes under the changelog's Unreleased heading are not part of those frozen assets.
 
-The 0.59.0rc5 candidate adds bounded metadata projections and native query stream
-cleanup. Publication remains pending exact-asset qualification and owner approval.
+The [0.59.0rc5 prerelease](https://github.com/abedegno/observability-migration/releases/tag/v0.59.0rc5)
+is published from commit `3ee902498d8262230d6ca5e111fc266a74573459` with bounded
+metadata projections and native query stream cleanup.
 The optional native adapter requires separately built binaries; qualifying an
 existing development bridge does not qualify production native wheels.
 
