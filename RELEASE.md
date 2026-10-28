@@ -41,9 +41,12 @@ and [maintenance policy](SUPPORT.md) apply; proprietary-profile experimental fla
 and optional native provider exclusions remain unchanged. Later documentation
 updates on main do not alter the frozen release assets.
 
-The 1.1.0rc1 candidate packages opt-in job progress, bounded file reads, posting
-preflight overhead reduction and cancellation-recovery coverage. It remains an
-unpublished prerelease until exact-asset owner approval. The 1.0.0 stable contract
-and assets remain unchanged; no new physical profile or indexed-search support
-is introduced. Qualification of existing development native binaries remains
-separate from production native wheel distribution.
+The [1.1.0rc1 prerelease](https://github.com/abedegno/observability-migration/releases/tag/v1.1.0rc1)
+is published from commit `fd26db379f1cb4f01b808a4480328126a79a6e72` after exact-asset
+qualification and owner approval. It packages opt-in job progress, bounded file
+reads, posting preflight overhead reduction and cancellation-recovery coverage.
+All five public asset downloads match the approved files. The 1.0.0 stable
+contract and assets remain unchanged, and 1.0.0 remains the latest stable release.
+No new physical profile or indexed-search support is introduced. Qualification
+of existing development native binaries remains separate from production native
+wheel distribution.
