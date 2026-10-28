@@ -33,3 +33,26 @@ or private object names. Share reproduction data only with permission. Use
 
 Original code is Apache-2.0. Preserve dependency notices and each fixture's
 licence/provenance. Do not vendor the external decoder or vendor software.
+
+## Optional Parquet resource check
+
+With the candidate installed, run the developer tool in a fresh process on a
+completed canonical Parquet export:
+
+```sh
+python scripts/benchmark_parquet_read.py /derived/events.parquet
+```
+
+Optional `--expected-events`, `--expected-raw-wire-sha256` and `--max-rss-mib`
+arguments turn observations into explicit gates. The digest hashes each row's
+raw bytes followed by record-wire bytes, each prefixed with an unsigned eight-byte
+little-endian length. Use an independently retained expectation when available.
+The tool reads one file; it does not validate a dataset manifest or compare the
+original journal. Use `obsmigrate buckets verify` for original-source comparison.
+
+`read_seconds` covers traversal and hashing after imports; peak RSS covers the
+whole process, including imports. RSS measurement supports Linux and macOS.
+Compare unchanged files under the same interpreter, Arrow version, allocator and
+CPU/memory configuration. Choose a workload-specific budget: batch/count bounds
+are not a universal process RSS guarantee. Keep larger authorised inputs and raw
+benchmark records outside the public repository.
