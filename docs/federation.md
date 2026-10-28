@@ -79,6 +79,8 @@ The policy stays outside the capture manifest, original member bytes, source
 snapshot and logical query identity. Explicit receipts and source reports record
 it separately. Cursors retain at most the profile's encoded-state allowance per
 reader and are released after preflight, scans, early close and capture close.
+If another iterator owns the capture lock, native close returns without blocking
+and defers shared cursor cleanup until that owner releases the lock.
 This is not a process RSS limit. Capture file/point, Arrow input/result and engine
 budgets remain independent and unchanged. Multiple slices/readers have separate
 cursor budgets.

@@ -114,6 +114,7 @@ class CapturedBucket:
         data=_read(path,MAX_BYTES)
         if _sha(data)!=expected_sha256:raise ValueError('capture SHA-256 mismatch; validation cannot be reused')
         self.sha256=expected_sha256;self.size=len(data);self.closed=False;self._lock=threading.Lock()
+        self._cleanup_lock=threading.Lock();self._cleanup_pending=False
         _directory(data)
         try:
             with zipfile.ZipFile(io.BytesIO(data)) as archive:
@@ -210,13 +211,38 @@ class CapturedBucket:
     def check(self):
         if self.closed:raise ValueError('captured bucket is closed')
 
+    def _clear_cursors(self):
+        for source in self._sources.values():source.release_cursors()
+        self._cleanup_pending=False
+
+    def _unlock(self):
+        # Pair pending-cleanup registration with ownership release. Never wait
+        # for the capture lock while holding the separate cleanup-state lock.
+        with self._cleanup_lock:
+            try:
+                if self._cleanup_pending:self._clear_cursors()
+            finally:self._lock.release()
+
+    def _close_native_rows(self,rows):
+        # Native _emit leaves shared cursor cleanup to the capture owner. The
+        # generator itself can close without changing that shared reader state.
+        rows.close()
+        with self._cleanup_lock:
+            if self._lock.acquire(blocking=False):
+                try:self._clear_cursors()
+                finally:self._lock.release()
+            else:
+                # A suspended ordinary iterator can belong to this same caller.
+                # Its eventual _unlock drains this constant-size pending state.
+                self._cleanup_pending=True
+
     def close(self):
         if not self._lock.acquire(blocking=False):raise ValueError('captured bucket scan is active')
         try:
             self.closed=True
             for source in self._sources.values():source.close()
             self._sources.clear();self._files=MappingProxyType({})
-        finally:self._lock.release()
+        finally:self._unlock()
 
     def __enter__(self):self.check();return self
     def __exit__(self,*args):self.close()
@@ -242,7 +268,7 @@ class CapturedSelection:
                 slices.append({'slice_file':name,'source_sha256':source.sha256,'fully_validated_points':source.total,
                     'candidate_points':len(plan.point_ids),'candidate_dimension_sets':r['candidate_dimension_sets'],
                     'candidate_strategy':r['candidate_strategy']})
-        finally:capture._lock.release()
+        finally:capture._unlock()
         self._report=metric_bucket._json({'bundle_schema':1,'query':self.query,'query_sha256':self.sha256,
             'snapshot_manifest':m['snapshot_manifest'],'slices':slices,
             'fully_validated_points':sum(s['fully_validated_points'] for s in slices),
@@ -265,6 +291,6 @@ class CapturedSelection:
                         if first:state['bucket_snapshot_manifest']=snapshot;first=False
                         row['storage_json']=metric_bucket._json(state).decode();yield row
                 finally:rows.close()
-        finally:c._lock.release()
+        finally:c._unlock()
 
     def batches(self):yield from self.reader.batches(self.records())

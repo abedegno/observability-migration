@@ -77,3 +77,31 @@ def test_cli_capture_profile_receipt_and_invalid_limits(tmp_path,capsys):
     assert main(['metrics','capture-create',str(BUCKET),'--experimental','--offline-snapshot','--resource-profile','large','--out',str(path)])==0
     assert json.loads(capsys.readouterr().out)['metric_resource_profile']==LARGE.describe()
     with pytest.raises(ValueError):capture.CapturedBucket(path,expected_sha256='0'*64,experimental=True,limits=object())
+
+
+@pytest.mark.parametrize('operation',['resume','close'])
+def test_interleaved_native_cleanup_never_blocks_behind_caller_selection(tmp_path,operation):
+    import signal
+    from obs_migrate.native_scan import NativeScan
+    if not hasattr(signal,'setitimer'):pytest.skip('POSIX alarm bounds the deadlock regression')
+    path,receipt=make(tmp_path)
+    with capture.CapturedBucket(path,expected_sha256=receipt['capture_sha256'],experimental=True,limits=LARGE) as source:
+        native=NativeScan(source,None,None,None,256*1024**2,lambda size:None)
+        stream=native.scan((),tuple(range(len(msidx.SCHEMA))))
+        assert next(stream).num_rows>0
+        ordinary=source.select().records();next(ordinary)
+        def timed_out(*args):raise TimeoutError('native cleanup blocked behind caller-owned selection')
+        original=signal.signal(signal.SIGALRM,timed_out)
+        signal.setitimer(signal.ITIMER_REAL,1)
+        try:
+            if operation=='close':stream.close()
+            else:
+                with pytest.raises(ValueError,match='active'):next(stream)
+        finally:
+            signal.setitimer(signal.ITIMER_REAL,0);signal.signal(signal.SIGALRM,original)
+            ordinary.close();stream.close()
+        assert all(s.reader.work_report()['cursor_bytes']==0 for s in source._sources.values())
+        assert len(list(source.select().records()))==1201
+        again=NativeScan(source,None,None,None,256*1024**2,lambda size:None).scan((),())
+        try:assert sum(batch.num_rows for batch in again)==1201
+        finally:again.close()

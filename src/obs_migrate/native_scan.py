@@ -127,13 +127,13 @@ class NativeScan:
         def annotated():
             sentinel=object()
             for name,plan in selected._plans.items():
-                rows=self.capture._sources[name]._emit(plan,self.base.index,self.base.bucket_id,columns=decode_names)
+                rows=self.capture._sources[name]._emit(plan,self.base.index,self.base.bucket_id,columns=decode_names,release_cursors=False)
                 try:
                     while True:
                         if not self.capture._lock.acquire(blocking=False):raise ValueError('captured bucket scan is active')
                         try:
                             self.capture.check();row=next(rows,sentinel)
-                        finally:self.capture._lock.release()
+                        finally:self.capture._unlock()
                         if row is sentinel:break
                         # Keep logical table row provenance independent of the
                         # optimizer's scan predicate and batching decisions.
@@ -145,10 +145,7 @@ class NativeScan:
                             row['storage_json']=metric_bucket._json(state).decode()
                         if decode_names!=names:row={key:row[key] for key in names}
                         yield row
-                finally:
-                    # Closing an explicit-profile iterator releases shared reader
-                    # cursors; serialize with other scans just like next(rows).
-                    with self.capture._lock:rows.close()
+                finally:self.capture._close_native_rows(rows)
         rows=annotated()
         try:
             for batch in _batches(rows,projected,min(self.max_bytes,8*1024**2)):

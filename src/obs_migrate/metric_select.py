@@ -195,7 +195,7 @@ class _Source:
             report['time_index_bytes']=0 if self._time_ticks is None else len(self._time_ticks)*self._time_ticks.itemsize+len(self._time_ordinals)*self._time_ordinals.itemsize
         return report
 
-    def _emit(self,plan,index=None,bucket_id=None,*,columns=None):
+    def _emit(self,plan,index=None,bucket_id=None,*,columns=None,release_cursors=True):
         self.check();count=0
         if plan.source_sha256!=self.sha256:raise ValueError('candidate plan belongs to another source')
         options={'point_ids':plan.point_ids} if self.module is msidx1 else {'dimension_ids':plan.dimension_ids,**({'point_ids':plan.point_ids} if plan.predicate.time_range is not None else {})}
@@ -213,7 +213,7 @@ class _Source:
             if count!=len(plan.point_ids):raise ValueError('candidate cardinality mismatch')
             self.check()
         finally:
-            self.release_cursors()
+            if release_cursors:self.release_cursors()
 
     def records(self,predicate,*,index=None,bucket_id=None):
         yield from self._emit(self.plan(predicate),index,bucket_id)
