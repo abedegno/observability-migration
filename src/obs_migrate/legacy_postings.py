@@ -18,18 +18,14 @@ def uint32(wire,pos=0,*,label='posting',error_type=ValueError):
 
 def decode(wire,expected,nvalues,*,label="MSIDX1",error_type=ValueError):
     pos=0;ids=[];previous=0;has_runs=False
-    def number():
-        nonlocal pos
-        value,pos=uint32(wire,pos,label=label,error_type=error_type)
-        return value
     while pos<len(wire):
         if ids and wire[pos]==0:
-            has_runs=True;pos+=1;count=number()
+            has_runs=True;pos+=1;count,pos=uint32(wire,pos,label=label,error_type=error_type)
             if not 1<=count<=expected-len(ids):raise error_type(label+' invalid posting run')
             if previous+count>=nvalues:raise error_type(label+' posting run outside values')
             ids.extend(range(previous+1,previous+count+1));previous+=count
         else:
-            delta=number();point=previous+delta
+            delta,pos=uint32(wire,pos,label=label,error_type=error_type);point=previous+delta
             if point>=nvalues or (ids and point<=previous):
                 raise error_type(label+' posting outside values or non-increasing')
             ids.append(point);previous=point

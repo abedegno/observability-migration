@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Reduce posting preflight call overhead while retaining integer decoding,
+  bounds and cardinality checks.
+
 - Add opt-in JSON member/stage progress on stderr for event job planning, export,
   verification and resume, preserving stdout results and validation semantics.
 
