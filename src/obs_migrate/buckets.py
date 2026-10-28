@@ -87,8 +87,11 @@ class BucketContext:
                     rows = list(reader)
                     if len(rows) != 1 or not {"indextime_et", "indextime_lt"} <= set(reader.fieldnames or []):
                         raise ValueError("unsupported bucket_info.csv schema")
-                    self.index_bounds = (int(rows[0]["indextime_et"]), int(rows[0]["indextime_lt"]))
-                    if self.index_bounds[0] > self.index_bounds[1]:
+                    # Native sidecars can leave an endpoint empty. Retain it as
+                    # unknown; never invent zero, an extremum or an open range.
+                    self.index_bounds = tuple(None if rows[0][key] == "" else int(rows[0][key])
+                                              for key in ("indextime_et", "indextime_lt"))
+                    if None not in self.index_bounds and self.index_bounds[0] > self.index_bounds[1]:
                         raise ValueError("invalid index-time bounds")
                 self.files.append((info, sha))
             directory = journal.parent / "deletes"
@@ -139,7 +142,14 @@ class BucketContext:
         candidate = state["index_time_candidate_s"]
         self.index_min = candidate if self.index_min is None else min(self.index_min, candidate)
         self.index_max = candidate if self.index_max is None else max(self.index_max, candidate)
-        inside = self.index_bounds[0] <= candidate <= self.index_bounds[1] if self.index_bounds else None
+        inside = None
+        if self.index_bounds:
+            lower, upper = self.index_bounds
+            if ((lower is not None and candidate < lower) or
+                    (upper is not None and candidate > upper)):
+                inside = False
+            elif lower is not None and upper is not None:
+                inside = True
         state["index_candidate_within_bucket_info"] = inside
         self.index_outside_bounds += inside is False
         second = state["event_time_second_candidate"]
@@ -183,7 +193,8 @@ class BucketContext:
         if stats is not None:
             stats.update(physical_events=self.physical_count, deleted_events=self.deleted_count,
                          emitted_events=self.emitted_count, visibility=self.visibility,
-                         index_candidate_bounds_match=(self.index_min, self.index_max) == self.index_bounds if self.index_bounds else None,
+                         index_candidate_bounds_match=((self.index_min, self.index_max) == self.index_bounds
+                             if self.index_bounds and None not in self.index_bounds else None),
                          index_candidates_outside_bounds=self.index_outside_bounds,
                          index_candidate_min_s=self.index_min, index_candidate_max_s=self.index_max,
                          event_second_candidate_min=self.event_second_min,

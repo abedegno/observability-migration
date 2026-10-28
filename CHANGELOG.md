@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Preserve empty bucket-info index-time endpoints as unknown, allowing native
+  buckets with partial annotations while retaining source checks and diagnostics.
+
 ## 1.1.0rc1 — 2026-10-28
 
 - Bound capture/source file reads by their observed size, avoiding transient

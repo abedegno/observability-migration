@@ -32,3 +32,11 @@ permissions, search-time fields or distributed bucket selection.
 Retain original archives. Event rows do not reconstruct complete journals,
 dictionaries, index files or all source sidecars. Consumers of library iterators
 must finish successfully before committing their output.
+
+An optional `bucket_info.csv` index-time endpoint may be empty. In
+`bucket_context_json.index_time_bounds_s`, each missing endpoint is `null`; known
+values and the original sidecar hash are retained. A partial range cannot confirm
+containment or exact extrema. A violation of a known endpoint can still produce
+the existing diagnostic warning; it never removes an event. Malformed nonempty
+values and reversed complete bounds refuse. Journal timestamp decoding remains
+independent of these sidecar annotations.
