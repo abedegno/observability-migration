@@ -38,6 +38,54 @@ without it, the run binds observed bytes but does not authenticate them. Use
 Whole-journal duplicates require the explicit duplicate override. Equal events
 are retained. `--format arrow` selects Arrow IPC; preserve it on resume.
 
+## Optional job progress (unreleased source)
+
+Add `--progress` to `jobs plan`, `jobs export` or `jobs verify` to stream stage
+records to stderr while keeping the existing final stdout JSON unchanged:
+
+```sh
+obsmigrate jobs export --spec job.json --offline-snapshot --out /derived/job \
+  --progress 2>/derived/job-progress.jsonl
+obsmigrate jobs export --spec job.json --offline-snapshot --out /derived/job \
+  --resume --progress 2>/derived/resume-progress.jsonl
+obsmigrate jobs verify --spec job.json --offline-snapshot --against /derived/job \
+  --progress 2>/derived/verify-progress.jsonl
+```
+
+Keep log destinations outside original sources. This opt-in is available in the
+unreleased source after 1.0.0; the frozen 1.0.0 wheel does not have the flag.
+Without it, stderr and stdout behavior remains unchanged.
+
+Progress records have `type: "job_progress"`, `progress_schema: 1`, `operation`,
+`stage` and `status`. Member records add the one-based `member_number`,
+`members_total`, opaque `source_key`, and validated `input_id`/`selector` when safe
+to display. Selectors outside the bounded ASCII identifier set are omitted; the
+source key still identifies the selection. Completed stages include wall-clock
+`duration_seconds`. Records are JSON-escaped and flushed individually. Existing
+final CLI failure/cancellation JSON remains a separate record without that type.
+
+Stages distinguish planning, source validation, export, checkpoint reuse, source
+verification, checkpoint checks, artifact integrity and final local manifest
+publication. `validation` finishes only after the source has been opened and fully
+preflighted. `reuse` revalidates existing output against the source, including for
+a completed job; it does not mean skipped work. `job/completed` appears only after
+all normal source/artifact checks and any complete-manifest publication succeed.
+
+This reports stage boundaries, not a heartbeat, percentage, ETA or progress within
+a native parser. A long stage can remain active without another record. No root,
+file path, object URI, event body or exception text is included in a progress
+record. Identifiers deliberately name the selected member and can themselves be
+sensitive; retain logs accordingly. These records establish no new source
+consistency, native search visibility or compressed-seeking guarantee.
+
+Library callers of `job_dataset.export_job` and `verify_job` can pass
+`progress=callback` to receive the same bounded stage dictionaries synchronously.
+Callbacks must remain observational and must not mutate sources/outputs or reenter
+the job. Callback errors can abort work, leaving normal validated checkpoints;
+if terminal reporting fails during another error/cancellation, the original error
+wins. Reporting failure after a manifest commit cannot roll that commit back.
+Progress is transient and is never stored in the selection, data or manifest.
+
 ## Read-only S3 acquisition
 
 Install the optional maintained SDK dependency with `pip install '.[s3]'`.

@@ -16,6 +16,7 @@ def main(argv=None):
     jobs=root.add_parser('jobs',help='explicit offline multi-bucket event jobs; no native search semantics').add_subparsers(dest='command',required=True)
     for name in ('plan','export','verify'):
         p=jobs.add_parser(name);p.add_argument('--spec',required=True);p.add_argument('--offline-snapshot',action='store_true')
+        p.add_argument('--progress',action='store_true',help='emit bounded member/stage JSON progress on stderr; stdout result is unchanged')
         if name=='export':
             p.add_argument('--out',required=True);p.add_argument('--format',choices=['parquet','arrow'],default='parquet');p.add_argument('--resume',action='store_true')
         elif name=='verify':p.add_argument('--against',required=True)
@@ -329,10 +330,16 @@ def main(argv=None):
         elif args.group == 'jobs':
             from .index_job import load_spec,plan_job,manifest
             from .job_dataset import export_job,verify_job
-            plan=plan_job(**load_spec(args.spec),offline_snapshot=args.offline_snapshot)
+            from .job_progress import JobProgress
+            progress=None
+            if args.progress:
+                def progress(event):
+                    print(json.dumps(event,sort_keys=True,ensure_ascii=True),file=sys.stderr,flush=True)
+            with JobProgress(progress,args.command).stage('planning'):
+                plan=plan_job(**load_spec(args.spec),offline_snapshot=args.offline_snapshot)
             if args.command=='plan':result={'selection_sha256':plan.selection_sha256,**manifest(plan)}
-            elif args.command=='export':result=export_job(plan,args.out,format=args.format,resume=args.resume)
-            else:result=verify_job(plan,args.against)
+            elif args.command=='export':result=export_job(plan,args.out,format=args.format,resume=args.resume,progress=progress)
+            else:result=verify_job(plan,args.against,progress=progress)
         elif args.group=='smartstore' and args.command=='acquire':
             if not args.offline_snapshot:raise ValueError('S3 acquisition requires --offline-snapshot before SDK credential lookup')
             from contextlib import closing

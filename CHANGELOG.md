@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add opt-in JSON member/stage progress on stderr for event job planning, export,
+  verification and resume, preserving stdout results and validation semantics.
+
 - Verify native query recovery on the same session after cancellation while
   the caller retains the original exception traceback, across cache budgets.
 

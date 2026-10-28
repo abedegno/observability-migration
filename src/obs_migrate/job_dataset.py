@@ -4,6 +4,7 @@ Complete publication is the final operation. A provisional directory is never a
 readable job. Source verification and artifact-integrity reading are distinct.
 """
 from dataclasses import dataclass
+from contextlib import ExitStack
 import hashlib
 import json
 import os
@@ -15,6 +16,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 
 from . import dataset,event_bucket
+from .job_progress import JobProgress
 from .index_job import MAX_MANIFEST,canonical,identity,manifest,open_member,finish_inputs,member_key
 from .event_limits import LARGE_EVENTS
 
@@ -181,79 +183,108 @@ def _entry(member,path,report,stamp):
             'physical_events':report['fully_validated_events'],'envelope_sha256':identity(report)}
 
 
-def _parts(output,state):
+def _parts(output,state,observer=None):
+    observer = observer or JobProgress(None,'verify')
     _entries(output,state)
-    for entry in state['members']:
-        size=_regular(output/entry['path']).st_size
-        if size!=entry['bytes'] or size>PART_CAPS[state['selection']['resource_profile']]:raise ValueError('job member size mismatch or limit exceeded')
-        if _fingerprint(output/entry['path'])!={k:entry[k] for k in ('bytes','sha256')}:raise ValueError('job member hash mismatch')
+    for number,entry in enumerate(state['members'],1):
+        member = observer.plan.sources[number-1] if observer.plan is not None else None
+        with observer.stage('artifact_validation',member,number):
+            size=_regular(output/entry['path']).st_size
+            if size!=entry['bytes'] or size>PART_CAPS[state['selection']['resource_profile']]:raise ValueError('job member size mismatch or limit exceeded')
+            if _fingerprint(output/entry['path'])!={k:entry[k] for k in ('bytes','sha256')}:raise ValueError('job member hash mismatch')
 
 
-def export_job(plan,output,*,format='parquet',resume=False):
+def export_job(plan,output,*,format='parquet',resume=False,progress=None):
     if format not in ('parquet','arrow') or type(resume) is not bool:raise ValueError('unsupported job export options')
+    if progress is not None:_selection(manifest(plan))
+    observer=JobProgress(progress,'export',plan)
     output=_root(output);_guard_output(plan,output)
-    if resume:
-        _regular(output,directory=True);_regular(output/'.lock')
-    else:
-        try:output.mkdir(mode=0o700)
-        except FileExistsError:raise ValueError('new job requires absent output directory') from None
-    with dataset._lock(output):
-        if resume and (output/'manifest.json').exists():
-            state=_load(output);_match(plan,state)
-            if state['member_format']!=format:raise ValueError('resume format differs from job')
-            if state['complete']:
-                _verify(plan,output,state)
-                return state
+    with observer.stage('job'):
+        if resume:
+            _regular(output,directory=True);_regular(output/'.lock')
         else:
-            if resume:
-                if {p.name for p in output.iterdir()}!={'.lock','parts'}:raise ValueError('unbound job directory cannot resume')
-                _regular(output/'parts',directory=True)
-                if any((output/'parts').iterdir()):raise ValueError('members without initial selection manifest cannot resume')
-            else:(output/'parts').mkdir()
-            state={'format':'obs-index-job-1','complete':False,'selection_sha256':plan.selection_sha256,
-                   'selection':manifest(plan),'member_format':format,'members':[],'events':0,'physical_events':0}
-            _save(output,state)
-        checkpoints={entry['source_key']:entry for entry in state['members']}
-        for member in plan.sources:
-            relative=_part_name(member.source_key,format)
-            with open_member(plan,member) as leaf:
-                if (output/relative).exists():
-                    if not resume:raise ValueError('job part unexpectedly exists')
-                    checked=event_bucket.verify(leaf,output/relative,format)
-                    report={k:v for k,v in checked.items() if k not in ('verified_events','comparison')}
-                else:report=event_bucket.export(leaf,output/relative,format)
-                entry=_entry(member,relative,report,_fingerprint(output/relative))
-            saved=checkpoints.get(member.source_key)
-            if saved is not None:
-                if saved!=entry:raise ValueError('job checkpoint differs from source/output')
+            try:output.mkdir(mode=0o700)
+            except FileExistsError:raise ValueError('new job requires absent output directory') from None
+        with dataset._lock(output):
+            if resume and (output/'manifest.json').exists():
+                with observer.stage('manifest_validation'):
+                    state=_load(output);_match(plan,state)
+                    if state['member_format']!=format:raise ValueError('resume format differs from job')
+                if state['complete']:
+                    _verify(plan,output,state,observer,reuse=True)
+                    return state
             else:
-                state['members'].append(entry)
-                state['events']+=entry['events'];state['physical_events']+=entry['physical_events']
+                if resume:
+                    if {p.name for p in output.iterdir()}!={'.lock','parts'}:raise ValueError('unbound job directory cannot resume')
+                    _regular(output/'parts',directory=True)
+                    if any((output/'parts').iterdir()):raise ValueError('members without initial selection manifest cannot resume')
+                else:(output/'parts').mkdir()
+                state={'format':'obs-index-job-1','complete':False,'selection_sha256':plan.selection_sha256,
+                       'selection':manifest(plan),'member_format':format,'members':[],'events':0,'physical_events':0}
                 _save(output,state)
-        finish_inputs(plan);_parts(output,state)
-        state['complete']=True;_save(output,state)
-        return state
+            checkpoints={entry['source_key']:entry for entry in state['members']}
+            for number,member in enumerate(plan.sources,1):
+                relative=_part_name(member.source_key,format)
+                with observer.stage('member',member,number):
+                    with ExitStack() as stack:
+                        with observer.stage('validation',member,number):
+                            leaf=stack.enter_context(open_member(plan,member))
+                        existing=(output/relative).exists()
+                        with observer.stage('reuse' if existing else 'export',member,number):
+                            if existing:
+                                if not resume:raise ValueError('job part unexpectedly exists')
+                                checked=event_bucket.verify(leaf,output/relative,format)
+                                report={k:v for k,v in checked.items() if k not in ('verified_events','comparison')}
+                            else:report=event_bucket.export(leaf,output/relative,format)
+                            entry=_entry(member,relative,report,_fingerprint(output/relative))
+                    with observer.stage('checkpoint',member,number):
+                        saved=checkpoints.get(member.source_key)
+                        if saved is not None:
+                            if saved!=entry:raise ValueError('job checkpoint differs from source/output')
+                        else:
+                            state['members'].append(entry)
+                            state['events']+=entry['events'];state['physical_events']+=entry['physical_events']
+                            _save(output,state)
+            with observer.stage('source_check'):
+                finish_inputs(plan)
+            _parts(output,state,observer)
+            with observer.stage('publication'):
+                state['complete']=True;_save(output,state)
+            return state
 
 
-def _verify(plan,output,state):
+def _verify(plan,output,state,observer=None,*,reuse=False):
+    observer=observer or JobProgress(None,'verify')
     _match(plan,state)
     if not state['complete']:raise ValueError('job is incomplete')
-    _parts(output,state);total=0
-    for member,entry in zip(plan.sources,state['members']):
-        with open_member(plan,member) as leaf:
-            checked=event_bucket.verify(leaf,output/entry['path'],state['member_format'])
-            report={k:v for k,v in checked.items() if k not in ('verified_events','comparison')}
-            if _entry(member,entry['path'],report,_fingerprint(output/entry['path']))!=entry:raise ValueError('job member differs from source')
-            total+=checked['verified_events']
-    finish_inputs(plan);_parts(output,state)
+    _parts(output,state,observer);total=0
+    for number,(member,entry) in enumerate(zip(plan.sources,state['members']),1):
+        with observer.stage('member',member,number):
+            with ExitStack() as stack:
+                with observer.stage('validation',member,number):
+                    leaf=stack.enter_context(open_member(plan,member))
+                with observer.stage('reuse' if reuse else 'verify',member,number):
+                    checked=event_bucket.verify(leaf,output/entry['path'],state['member_format'])
+                    report={k:v for k,v in checked.items() if k not in ('verified_events','comparison')}
+                    if _entry(member,entry['path'],report,_fingerprint(output/entry['path']))!=entry:raise ValueError('job member differs from source')
+                    total+=checked['verified_events']
+    with observer.stage('source_check'):
+        finish_inputs(plan)
+    _parts(output,state,observer)
     if _load(output)!=state:raise ValueError('job manifest changed during verification')
     return {**state,'verified_events':total,'comparison':'all sources, ordered event/link fields and full member envelopes'}
 
 
-def verify_job(plan,output):
+def verify_job(plan,output,*,progress=None):
+    if progress is not None:_selection(manifest(plan))
+    observer=JobProgress(progress,'verify',plan)
     output=_root(output);_guard_output(plan,output);_regular(output,directory=True)
     _regular(output/'.lock')
-    with dataset._lock(output):return _verify(plan,output,_load(output))
+    with observer.stage('job'):
+        with dataset._lock(output):
+            with observer.stage('manifest_validation'):
+                state=_load(output)
+            return _verify(plan,output,state,observer)
 
 
 def read_job(output):
