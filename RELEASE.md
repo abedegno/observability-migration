@@ -40,3 +40,10 @@ qualification and owner approval. Its finite [support contract](docs/support-con
 and [maintenance policy](SUPPORT.md) apply; proprietary-profile experimental flags
 and optional native provider exclusions remain unchanged. Later documentation
 updates on main do not alter the frozen release assets.
+
+The 1.1.0rc1 candidate packages opt-in job progress, bounded file reads, posting
+preflight overhead reduction and cancellation-recovery coverage. It remains an
+unpublished prerelease until exact-asset owner approval. The 1.0.0 stable contract
+and assets remain unchanged; no new physical profile or indexed-search support
+is introduced. Qualification of existing development native binaries remains
+separate from production native wheel distribution.

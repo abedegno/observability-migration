@@ -38,7 +38,7 @@ without it, the run binds observed bytes but does not authenticate them. Use
 Whole-journal duplicates require the explicit duplicate override. Equal events
 are retained. `--format arrow` selects Arrow IPC; preserve it on resume.
 
-## Optional job progress (unreleased source)
+## Optional job progress (1.1.0rc1)
 
 Add `--progress` to `jobs plan`, `jobs export` or `jobs verify` to stream stage
 records to stderr while keeping the existing final stdout JSON unchanged:
@@ -53,7 +53,7 @@ obsmigrate jobs verify --spec job.json --offline-snapshot --against /derived/job
 ```
 
 Keep log destinations outside original sources. This opt-in is available in the
-unreleased source after 1.0.0; the frozen 1.0.0 wheel does not have the flag.
+available in 1.1.0rc1; the frozen 1.0.0 wheel does not have the flag.
 Without it, stderr and stdout behavior remains unchanged.
 
 Progress records have `type: "job_progress"`, `progress_schema: 1`, `operation`,

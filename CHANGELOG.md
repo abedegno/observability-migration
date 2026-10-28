@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.1.0rc1 — 2026-10-28
+
 - Bound capture/source file reads by their observed size, avoiding transient
   cap-sized allocations and refusing incomplete reads.
 
