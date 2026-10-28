@@ -23,3 +23,6 @@ The [0.59.0rc3 prerelease](https://github.com/abedegno/observability-migration/r
 is published from commit `5f196a0d5afc34377efe0be760d533266bc79502`.
 Its attached qualification summary describes the exact tested assets. PyPI
 publication, production native wheels and stable 1.0 promotion remain separate work.
+
+The current source candidate is `0.59.0rc4` (unreleased). Its qualification and
+assets are prepared separately; no new publication is implied by source versioning.

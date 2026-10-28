@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "observability-migration-toolkit"
-version = "0.59.0rc3"
+version = "0.59.0rc4"
 description = "Read-only observability archive access: experimental journal adapter and lossless exports"
 requires-python = ">=3.11"
 license = "Apache-2.0"

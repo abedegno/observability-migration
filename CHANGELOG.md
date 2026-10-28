@@ -1,9 +1,11 @@
 # Changelog
 
-## Unreleased
+## 0.59.0rc4 — unreleased
 
 - Reduce worker-pool memory overhead during Parquet export verification and
   manifest-managed dataset reads without changing schema or field comparisons.
+- Add an optional canonical Parquet count/digest/resource gate for contributors,
+  and extend Parquet verification rejection coverage.
 
 ## 0.59.0rc3 — 2026-10-28
 
