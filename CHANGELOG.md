@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Bound capture/source file reads by their observed size, avoiding transient
+  cap-sized allocations and refusing incomplete reads.
+
 - Reduce posting preflight call overhead while retaining integer decoding,
   bounds and cardinality checks.
 

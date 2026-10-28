@@ -39,10 +39,12 @@ def _read(path,limit,*,zero=False):
     with path.open('rb') as file:
         opened=os.fstat(file.fileno())
         if (opened.st_dev,opened.st_ino)!=(before.st_dev,before.st_ino):raise ValueError('capture input replaced while opening')
-        data=file.read(limit+1);after=os.fstat(file.fileno())
+        # The size is already bounded above. One extra byte detects growth
+        # without reserving the whole configured cap for a small regular file.
+        data=file.read(before.st_size+1);after=os.fstat(file.fileno())
     final=path.lstat()
     stamp=lambda s:(s.st_dev,s.st_ino,s.st_size,s.st_mtime_ns,s.st_ctime_ns)
-    if len(data)>limit or stamp(before)!=stamp(after) or stamp(after)!=stamp(final):
+    if len(data)!=before.st_size or len(data)>limit or stamp(before)!=stamp(after) or stamp(after)!=stamp(final):
         raise ValueError('capture input changed during read')
     return data
 
