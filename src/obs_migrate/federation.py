@@ -366,8 +366,11 @@ class BucketSession:
                         batches.append(batch)
                 except BaseException as error:
                     failure=error
-                # Native stream destruction can close a suspended Python generator.
-                # Release it before raising, while no Python exception is unwinding.
+                # DataFusion 55's Python wrapper owns the native stream in rbs.
+                # Iterator tracebacks can retain that wrapper after cancellation;
+                # detach its native owner before propagating, preserving tracebacks.
+                # Destruction may close Python generators, so do it outside unwind.
+                stream.rbs=None
                 del stream
                 if failure is not None:raise failure
                 table=pa.Table.from_batches(batches,schema=schema)

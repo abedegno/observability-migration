@@ -58,3 +58,43 @@ def test_cached_metadata_obeys_query_byte_caps_and_releases_source(limit):
         fresh = BucketSession()
         fresh.register_native_event_snapshot('events', source)
         assert fresh.sql('select count(*) as n from events').table.to_pylist() == [{'n':29}]
+
+
+def test_interrupt_releases_native_stream_while_exception_is_retained(monkeypatch):
+    import gc
+    import _native_provider as bridge
+    from datafusion.record_batch import RecordBatchStream
+    state = {'opened':0, 'closed':0}
+    schema = pa.schema([('x',pa.int64())])
+
+    class Backend:
+        def reset(self):
+            pass
+        def scan(self, clauses, projection):
+            state['opened'] += 1
+            try:
+                for i in range(100):
+                    yield pa.RecordBatch.from_arrays([pa.array([i])], schema=schema)
+            finally:
+                state['closed'] += 1
+
+    session = BucketSession()
+    backend = Backend()
+    session._context.register_table('events', bridge.NativeProvider(schema, backend))
+    session._sources['events'] = {'check':lambda:None, 'native':backend}
+    original = RecordBatchStream.__next__
+
+    def interrupted(self):
+        original(self)
+        raise KeyboardInterrupt('controlled cancellation after a native batch')
+
+    monkeypatch.setattr(RecordBatchStream, '__next__', interrupted)
+    with pytest.raises(KeyboardInterrupt) as caught:
+        session.sql('select x from events')
+    closed_before_discard = state['closed']
+    assert caught.value.__traceback__ is not None
+    # Clean up the old implementation safely after recording its failure.
+    # Correctness must not depend on discarding the caller's exception or GC.
+    caught.value.__traceback__ = None
+    gc.collect()
+    assert state['opened'] == closed_before_discard == 1
