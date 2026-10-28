@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Reduce metric Parquet read/verification peak memory by decoding row-group batches
+  without parallel column workers; preserve exact rows and global Arrow settings.
+
+
 - Add opt-in bounded larger MSIDX4 bulk extraction with incremental XOR cursors,
   preserving default limits, exact numeric provenance and source validation.
 

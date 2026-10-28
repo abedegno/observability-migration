@@ -88,3 +88,11 @@ charge; `complete` becomes true only after full source exhaustion and final sour
 checks. Closing a partial iterator releases cursor buffers and records incomplete
 validation. Larger profiles apply to MSIDX4 file/bucket bulk export and verification;
 legacy readers and capture/selection/SQL/federation retain existing limits.
+
+
+Metric Parquet traversal validates the complete Arrow schema and reads one row
+group at a time in batches of at most 1,024 rows, with column decoding performed
+without parallel workers. This local reader policy avoids the higher peak memory
+observed for wide metric rows; it changes neither global Arrow thread settings,
+canonical fields, source verification nor output schemas. It is not a hard RSS
+limit or a guarantee for arbitrary Parquet files and platforms.

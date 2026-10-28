@@ -80,8 +80,10 @@ class MetricRecordIO:
         elif format=='parquet':
             with pq.ParquetFile(path) as file:
                 if not file.schema_arrow.equals(self.schema,check_metadata=True):raise ValueError('metric record schema mismatch')
+                # Keep row-group bounds and avoid parallel column-decoding
+                # allocations for wide rows; leave global Arrow settings alone.
                 for group in range(file.num_row_groups):
-                    for batch in file.iter_batches(batch_size=1024,row_groups=[group]):yield from batch.to_pylist()
+                    for batch in file.iter_batches(batch_size=1024,row_groups=[group],use_threads=False):yield from batch.to_pylist()
         else:raise ValueError('unknown metric record export format')
 
     def verify(self,rows,path,format):
