@@ -1,0 +1,80 @@
+# Observability Migration
+
+Read-only access to historical observability data, starting with native Splunk
+buckets and journals. Extract stored events and metrics into Arrow, Parquet or
+NDJSON while retaining original bytes, exact timestamp components, metadata and
+source provenance.
+
+The toolkit provides experimental readers for explicitly recognised physical
+profiles. It does not implement SPL, general indexed search, live snapshots or
+complete DDSS archive compatibility. See [supported formats](docs/formats.md).
+
+## Quick start
+
+Use Python 3.13 or 3.14 and an immutable, authorised offline copy of your data.
+The Python distribution is `observability-migration-toolkit`, the CLI is
+`obsmigrate`, and the import namespace is `obs_migrate`.
+
+```sh
+git clone https://github.com/abedegno/observability-migration.git
+cd observability-migration
+python3.14 -m venv .venv
+.venv/bin/python -m pip install .
+.venv/bin/obsmigrate --version
+```
+
+The original journal decoder is supplied separately. Obtain its audited source
+and register the directory containing its two Python modules:
+
+```sh
+git clone https://github.com/ponquersohn/splunk_ddss_extractor.git upstream/splunk_ddss_extractor
+git -C upstream/splunk_ddss_extractor checkout --detach d2885c63b36f115189f810eb0f43a888cc73c967
+.venv/bin/obsmigrate setup-decoder \
+  --source "$PWD/upstream/splunk_ddss_extractor/src/splunk_ddss_extractor"
+.venv/bin/obsmigrate doctor
+```
+
+Both module hashes are checked before execution. Journal extraction requires no
+Splunk installation, Rust compiler or external Zstd executable. The optional
+[source bootstrap](scripts/bootstrap-python.sh) also supports setup with Git/uv.
+
+```sh
+.venv/bin/obsmigrate buckets inspect /offline/bucket
+.venv/bin/obsmigrate buckets export /offline/bucket \
+  --experimental --format parquet --out /tmp/events.parquet
+.venv/bin/obsmigrate buckets verify /offline/bucket \
+  --experimental --format parquet --against /tmp/events.parquet
+```
+
+Choose a new output path. Keep the original bucket: exported rows do not
+reconstruct complete bucket files. Default physical extraction retains physical
+events, including deleted records where present. `undeleted` applies only
+reconciled masks, not all Splunk search visibility.
+
+## Library
+
+```python
+from obs_migrate.journal import events
+from obs_migrate.events import batches
+
+for batch in batches(events('/offline/bucket', experimental=True)):
+    consume(batch)
+```
+
+Consume the iterator successfully to completion before committing a result.
+Arrow batches form the boundary for downstream analytics and the optional
+DataFusion adapter.
+
+## Documentation
+
+- [Usage and recovery](docs/usage.md)
+- [Supported formats and limitations](docs/formats.md)
+- [Event data contract](docs/data-format.md)
+- [Optional federation](docs/federation.md)
+- [Contributing and tests](CONTRIBUTING.md)
+- [Release procedure](RELEASE.md) and [changelog](CHANGELOG.md)
+- [Security reporting](SECURITY.md)
+
+Original code is Apache-2.0. Bundled test data retains its own CC0 licence and
+provenance. The separately supplied decoder is MIT; see
+[third-party acknowledgements](THIRD_PARTY_NOTICES.md).

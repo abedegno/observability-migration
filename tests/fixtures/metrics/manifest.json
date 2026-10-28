@@ -1,0 +1,217 @@
+{
+  "license": "CC0-1.0",
+  "origin": "controlled nonprivate native Splunk ingestion; original proprietary-format bytes, never fabricated",
+  "events_per_producer": 5,
+  "files": [
+    {
+      "path": "7.0.0/db_1534777203_1534777200_0/SourceTypes.data",
+      "origin": "version-matrix/7.0.0/warm/metrics_default/db_1534777203_1534777200_0/SourceTypes.data",
+      "sha256": "5dcb16d19ac9c22ffcbd6b0c61684a99dfa9f05765a4aa0850669716c288b41d"
+    },
+    {
+      "path": "7.0.0/db_1534777203_1534777200_0/bucket_info.csv",
+      "origin": "version-matrix/7.0.0/warm/metrics_default/db_1534777203_1534777200_0/bucket_info.csv",
+      "sha256": "420c4aa1dfce78196e89cbd38c916a53db6020c0243bf24276105fa51a511b14"
+    },
+    {
+      "path": "7.0.0/db_1534777203_1534777200_0/Sources.data",
+      "origin": "version-matrix/7.0.0/warm/metrics_default/db_1534777203_1534777200_0/Sources.data",
+      "sha256": "8451420a36e81d7cb65643c4a557d847ffbea70edbf1e1a6a9d7b14eb92f626d"
+    },
+    {
+      "path": "7.0.0/db_1534777203_1534777200_0/optimize.result",
+      "origin": "version-matrix/7.0.0/warm/metrics_default/db_1534777203_1534777200_0/optimize.result",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "7.0.0/db_1534777203_1534777200_0/Hosts.data",
+      "origin": "version-matrix/7.0.0/warm/metrics_default/db_1534777203_1534777200_0/Hosts.data",
+      "sha256": "7f53ea05fb632130bbffbd2b270294840f960d6ba887819c01a4deb6106c31a6"
+    },
+    {
+      "path": "7.0.0/db_1534777203_1534777200_0/bloomfilter",
+      "origin": "version-matrix/7.0.0/warm/metrics_default/db_1534777203_1534777200_0/bloomfilter",
+      "sha256": "63bc725350e0a74835085a2c8476dc396968ba4e48ba9463b4edeccea9e02fb8"
+    },
+    {
+      "path": "7.0.0/db_1534777203_1534777200_0/1534777203-1534777200-5456668147556867350.tsidx",
+      "origin": "version-matrix/7.0.0/warm/metrics_default/db_1534777203_1534777200_0/1534777203-1534777200-5456668147556867350.tsidx",
+      "sha256": "848a774dd99bcbdb3cb0c25c9424f44ecec3b4dcfc81cbd4f4f11bbf186f5f1e"
+    },
+    {
+      "path": "7.0.0/db_1534777203_1534777200_0/.sizeManifest4.1",
+      "origin": "version-matrix/7.0.0/warm/metrics_default/db_1534777203_1534777200_0/.sizeManifest4.1",
+      "sha256": "0619da9a25a45fa6ba8b1419156c409b31b03f662e89335b3dc9fe41dda9df62"
+    },
+    {
+      "path": "7.0.0/db_1534777203_1534777200_0/.rawSize",
+      "origin": "version-matrix/7.0.0/warm/metrics_default/db_1534777203_1534777200_0/.rawSize",
+      "sha256": "f4ccd05b3271c386ee55d9876c7450012a3b361e5065c09dc22075e38b3cc35c"
+    },
+    {
+      "path": "7.0.0/db_1534777203_1534777200_0/Strings.data",
+      "origin": "version-matrix/7.0.0/warm/metrics_default/db_1534777203_1534777200_0/Strings.data",
+      "sha256": "a8aa9c203dc4d56cc2fc6d7bc7a514caadbdc571da5e9159915ffb02ec578103"
+    },
+    {
+      "path": "7.0.0/db_1534777203_1534777200_0/rawdata/journal.gz",
+      "origin": "version-matrix/7.0.0/warm/metrics_default/db_1534777203_1534777200_0/rawdata/journal.gz",
+      "sha256": "548a50486709cdcdd0d482d9a91b0c1b042e736974f201c8672c85faab60a5d8"
+    },
+    {
+      "path": "7.0.0/db_1534777203_1534777200_0/rawdata/slicemin.dat",
+      "origin": "version-matrix/7.0.0/warm/metrics_default/db_1534777203_1534777200_0/rawdata/slicemin.dat",
+      "sha256": "fa63cf1ea573ad0698cb8160a9b196457788690f17ca32661d62550182b3c440"
+    },
+    {
+      "path": "7.0.0/db_1534777203_1534777200_0/rawdata/slicesv2.dat",
+      "origin": "version-matrix/7.0.0/warm/metrics_default/db_1534777203_1534777200_0/rawdata/slicesv2.dat",
+      "sha256": "f1e134b6de25034cfc05728cd5c5b4c3119d5647ad366de25ec4917e47b0e8c1"
+    },
+    {
+      "path": "7.0.0/native.csv",
+      "origin": "version-matrix/7.0.0/metrics_default-db_1534777203_1534777200_0.csv",
+      "sha256": "e277e9666e614d07621b95a641a139e147c5b4b7ce06d678bc367353d9601c4b"
+    },
+    {
+      "path": "7.3.9/db_1534777203_1534777200_0/SourceTypes.data",
+      "origin": "version-matrix/7.3.9/warm/metrics_default/db_1534777203_1534777200_0/SourceTypes.data",
+      "sha256": "df067fd4777dd1a112478abbaca27daa717f78ed0d6f0ab033484be4b3521a9f"
+    },
+    {
+      "path": "7.3.9/db_1534777203_1534777200_0/bucket_info.csv",
+      "origin": "version-matrix/7.3.9/warm/metrics_default/db_1534777203_1534777200_0/bucket_info.csv",
+      "sha256": "a23d24714f594746c4ef0cb42d92ef75940bbba80ebf08fb94f2ba457f6604a2"
+    },
+    {
+      "path": "7.3.9/db_1534777203_1534777200_0/Sources.data",
+      "origin": "version-matrix/7.3.9/warm/metrics_default/db_1534777203_1534777200_0/Sources.data",
+      "sha256": "cc098ecd44c9e48e997772700683651a9591b545e335549e64ac93454ee6571f"
+    },
+    {
+      "path": "7.3.9/db_1534777203_1534777200_0/optimize.result",
+      "origin": "version-matrix/7.3.9/warm/metrics_default/db_1534777203_1534777200_0/optimize.result",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "7.3.9/db_1534777203_1534777200_0/Hosts.data",
+      "origin": "version-matrix/7.3.9/warm/metrics_default/db_1534777203_1534777200_0/Hosts.data",
+      "sha256": "bfaab5a0c1599e9e355b2242c31a7cbc0ca737b126183597ae8a01afcd5e20dc"
+    },
+    {
+      "path": "7.3.9/db_1534777203_1534777200_0/1534777203-1534777200-5888420027045823188.tsidx",
+      "origin": "version-matrix/7.3.9/warm/metrics_default/db_1534777203_1534777200_0/1534777203-1534777200-5888420027045823188.tsidx",
+      "sha256": "834df58d3ef7c1334649fb41368b86408a3d20d2bfb25a4c8efcf3506f317df0"
+    },
+    {
+      "path": "7.3.9/db_1534777203_1534777200_0/bloomfilter",
+      "origin": "version-matrix/7.3.9/warm/metrics_default/db_1534777203_1534777200_0/bloomfilter",
+      "sha256": "0ee34a7ab8f0311a0e0dd66a2231df3a891dcc0ae12021038d183364a403c4d3"
+    },
+    {
+      "path": "7.3.9/db_1534777203_1534777200_0/.sizeManifest4.1",
+      "origin": "version-matrix/7.3.9/warm/metrics_default/db_1534777203_1534777200_0/.sizeManifest4.1",
+      "sha256": "0619da9a25a45fa6ba8b1419156c409b31b03f662e89335b3dc9fe41dda9df62"
+    },
+    {
+      "path": "7.3.9/db_1534777203_1534777200_0/.rawSize",
+      "origin": "version-matrix/7.3.9/warm/metrics_default/db_1534777203_1534777200_0/.rawSize",
+      "sha256": "f4ccd05b3271c386ee55d9876c7450012a3b361e5065c09dc22075e38b3cc35c"
+    },
+    {
+      "path": "7.3.9/db_1534777203_1534777200_0/Strings.data",
+      "origin": "version-matrix/7.3.9/warm/metrics_default/db_1534777203_1534777200_0/Strings.data",
+      "sha256": "a8aa9c203dc4d56cc2fc6d7bc7a514caadbdc571da5e9159915ffb02ec578103"
+    },
+    {
+      "path": "7.3.9/db_1534777203_1534777200_0/rawdata/journal.gz",
+      "origin": "version-matrix/7.3.9/warm/metrics_default/db_1534777203_1534777200_0/rawdata/journal.gz",
+      "sha256": "98223e8152e5516ea85b424b843d632f054a77f044ee95462458d5e75e640e45"
+    },
+    {
+      "path": "7.3.9/db_1534777203_1534777200_0/rawdata/slicemin.dat",
+      "origin": "version-matrix/7.3.9/warm/metrics_default/db_1534777203_1534777200_0/rawdata/slicemin.dat",
+      "sha256": "d1e6d027c17e5ed5b79223444af9d170941946a9cb2d31c6e17b7770fbdc8c2b"
+    },
+    {
+      "path": "7.3.9/db_1534777203_1534777200_0/rawdata/slicesv2.dat",
+      "origin": "version-matrix/7.3.9/warm/metrics_default/db_1534777203_1534777200_0/rawdata/slicesv2.dat",
+      "sha256": "e525f6f167c84f7c1b3a7591439c8c1fa4c866cda05d5148c1f93a51ce4dfec4"
+    },
+    {
+      "path": "10.6.0.5/db_1534777203_1534777200_0/SourceTypes.data",
+      "origin": "version-matrix/10.6.0.5/warm/metrics_default/db_1534777203_1534777200_0/SourceTypes.data",
+      "sha256": "8b1a1756e1623bbca25c2eb1a8c6525bf203bf8447b13ee4afdd3b22d86938dd"
+    },
+    {
+      "path": "10.6.0.5/db_1534777203_1534777200_0/1534777203-1534777200-6859554876188891874.tsidx",
+      "origin": "version-matrix/10.6.0.5/warm/metrics_default/db_1534777203_1534777200_0/1534777203-1534777200-6859554876188891874.tsidx",
+      "sha256": "0188529718641d237e2d74a95ebc4ab09106fc72d53804c880615ea1c30cf3b4"
+    },
+    {
+      "path": "10.6.0.5/db_1534777203_1534777200_0/bucket_info.csv",
+      "origin": "version-matrix/10.6.0.5/warm/metrics_default/db_1534777203_1534777200_0/bucket_info.csv",
+      "sha256": "4114924eb02193fda2a29868578f5ff53864868a7595603a5f059e916aa7f3dd"
+    },
+    {
+      "path": "10.6.0.5/db_1534777203_1534777200_0/Sources.data",
+      "origin": "version-matrix/10.6.0.5/warm/metrics_default/db_1534777203_1534777200_0/Sources.data",
+      "sha256": "cc4bf5c0c52066cc8a17f7dce138de94a7f5385bcd1ab17108e5ce618c017589"
+    },
+    {
+      "path": "10.6.0.5/db_1534777203_1534777200_0/optimize.result",
+      "origin": "version-matrix/10.6.0.5/warm/metrics_default/db_1534777203_1534777200_0/optimize.result",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "10.6.0.5/db_1534777203_1534777200_0/Hosts.data",
+      "origin": "version-matrix/10.6.0.5/warm/metrics_default/db_1534777203_1534777200_0/Hosts.data",
+      "sha256": "c1304609bca2ea7f324b2dab48b00507db04f64b820ef79a1ae05a9979dde25d"
+    },
+    {
+      "path": "10.6.0.5/db_1534777203_1534777200_0/bloomfilter",
+      "origin": "version-matrix/10.6.0.5/warm/metrics_default/db_1534777203_1534777200_0/bloomfilter",
+      "sha256": "0ee34a7ab8f0311a0e0dd66a2231df3a891dcc0ae12021038d183364a403c4d3"
+    },
+    {
+      "path": "10.6.0.5/db_1534777203_1534777200_0/.sizeManifest4.1",
+      "origin": "version-matrix/10.6.0.5/warm/metrics_default/db_1534777203_1534777200_0/.sizeManifest4.1",
+      "sha256": "0619da9a25a45fa6ba8b1419156c409b31b03f662e89335b3dc9fe41dda9df62"
+    },
+    {
+      "path": "10.6.0.5/db_1534777203_1534777200_0/.rawSize",
+      "origin": "version-matrix/10.6.0.5/warm/metrics_default/db_1534777203_1534777200_0/.rawSize",
+      "sha256": "f4ccd05b3271c386ee55d9876c7450012a3b361e5065c09dc22075e38b3cc35c"
+    },
+    {
+      "path": "10.6.0.5/db_1534777203_1534777200_0/Strings.data",
+      "origin": "version-matrix/10.6.0.5/warm/metrics_default/db_1534777203_1534777200_0/Strings.data",
+      "sha256": "5c859f5c11b6435cac974b54a4e067e2630703f92c41b76fd72cd8e169ce7b24"
+    },
+    {
+      "path": "10.6.0.5/db_1534777203_1534777200_0/rawdata/slicemin.dat",
+      "origin": "version-matrix/10.6.0.5/warm/metrics_default/db_1534777203_1534777200_0/rawdata/slicemin.dat",
+      "sha256": "302a2fdd5f5e92511dfe3c33a893f2d422ae37f773f342f4daa3f0947f5c5a20"
+    },
+    {
+      "path": "10.6.0.5/db_1534777203_1534777200_0/rawdata/journal.zst",
+      "origin": "version-matrix/10.6.0.5/warm/metrics_default/db_1534777203_1534777200_0/rawdata/journal.zst",
+      "sha256": "64f35e6ad6bcd54749e8cd187980847ba9d96bd92ed0c71df7983e9daa84b0c1"
+    },
+    {
+      "path": "10.6.0.5/db_1534777203_1534777200_0/rawdata/slicesv2.dat",
+      "origin": "version-matrix/10.6.0.5/warm/metrics_default/db_1534777203_1534777200_0/rawdata/slicesv2.dat",
+      "sha256": "8cd4b57bc7a41a0867ef7f4a9708dac142872b41f6c9622a5e4cb1935b7141ea"
+    },
+    {
+      "path": "7.3.9/native-query.jsonl",
+      "origin": "version-matrix/7.3.9/metrics_default-mstats.jsonl",
+      "sha256": "9e7c5c8fb485b56012605f73067b5b881ed5de7fb35220aaa55d56c904b54c5d"
+    },
+    {
+      "path": "10.6.0.5/native-query.jsonl",
+      "origin": "version-matrix/10.6.0.5/metrics_default-mstats.jsonl",
+      "sha256": "2875ce801f6a16082a48d4171187886e24e6e33a1d09f037ccf0feeef8f4ab96"
+    }
+  ]
+}

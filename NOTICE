@@ -1,0 +1,15 @@
+Observability Migration
+Copyright 2026 Open Observability Migration Toolkit contributors
+
+Original toolkit code is licensed under Apache-2.0.
+The separately supplied splunk_ddss_extractor Python decoder is by metadata
+ author Lech Lachowicz and is MIT-licensed, as confirmed by its maintainer.
+Its implementation is not bundled. See THIRD_PARTY_NOTICES.md.
+
+Bundled BOTS v3 samples originate from Splunk's public CC0-1.0 dataset.
+Controlled native event/metric test samples are CC0-1.0 nonprivate inputs.
+Their original binary bytes, hashes, native references and licences are
+retained under tests/fixtures. No vendor software is bundled or relicensed.
+
+PyArrow, Zstandard, optional DataFusion and Boto3/botocore dependencies are
+separately installed and retain their own licences and notices.

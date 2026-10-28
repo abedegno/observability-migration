@@ -1,0 +1,3 @@
+# Native fixture bytes and oracle line endings are part of their identity.
+tests/fixtures/** -text -diff
+tests/fixtures/README.md text diff

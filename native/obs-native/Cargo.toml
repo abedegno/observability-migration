@@ -1,0 +1,23 @@
+[package]
+name = "obs-migrate-native"
+version = "0.22.0"
+edition = "2024"
+license = "Apache-2.0"
+
+[lib]
+name = "_native_provider"
+crate-type = ["cdylib"]
+
+[dependencies]
+arrow = { version = "=59.3.0", features = ["pyarrow"] }
+datafusion = { version = "=55.2.0", default-features = false }
+datafusion-ffi = "=55.2.0"
+pyo3 = { version = "0.29", features = ["extension-module"] }
+async-trait = "0.1.89"
+futures = "0.3"
+
+[profile.dev]
+debug = 0
+
+[build-dependencies]
+pyo3-build-config = "=0.29.3"

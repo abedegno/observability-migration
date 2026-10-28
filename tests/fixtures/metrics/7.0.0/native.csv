@@ -1,0 +1,6 @@
+"_time",source,host,sourcetype,"_raw","_meta"
+1534777200,"source::controlled-metric-input","host::fixture-host","sourcetype::obs_matrix_metric",metric,"_indextime::1793012677 _subsecond::.125 _value::1.25 metric_name::matrix.cpu rack::a punct::"
+1534777201,"source::controlled-metric-input","host::fixture-host","sourcetype::obs_matrix_metric",metric,"_indextime::1793012677 _subsecond::.25 _value::-2.5 metric_name::matrix.cpu rack::a punct::"
+1534777202,"source::controlled-metric-input","host::fixture-host","sourcetype::obs_matrix_metric",metric,"_indextime::1793012677 _subsecond::.5 _value::0 metric_name::matrix.cpu rack::b punct::"
+1534777203,"source::controlled-metric-input","host::fixture-host","sourcetype::obs_matrix_metric",metric,"_indextime::1793012677 _subsecond::.75 _value::1024 metric_name::matrix.mem rack::b punct::"
+1534777203,"source::controlled-metric-input","host::fixture-host","sourcetype::obs_matrix_metric",metric,"_indextime::1793012677 _subsecond::.75 _value::1024 metric_name::matrix.mem rack::b punct::"

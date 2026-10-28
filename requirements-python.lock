@@ -1,0 +1,5 @@
+# Exact tested base versions; source decoder is separately hash-pinned, not bundled.
+pip==26.2.2
+setuptools==84.2.1
+pyarrow==26.0.0
+zstandard==0.25.0

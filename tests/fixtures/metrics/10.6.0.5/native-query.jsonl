@@ -1,0 +1,4 @@
+{"preview":false,"offset":0,"result":{"_time":"2018-08-20 15:00:00.000 GMT","metric_name":"matrix.cpu","rack":"a","host":"fixture-host","n":"1","total":"1.250000","minimum":"1.250000","maximum":"1.250000"}}
+{"preview":false,"offset":1,"result":{"_time":"2018-08-20 15:00:01.000 GMT","metric_name":"matrix.cpu","rack":"a","host":"fixture-host","n":"1","total":"-2.500000","minimum":"-2.500000","maximum":"-2.500000"}}
+{"preview":false,"offset":2,"result":{"_time":"2018-08-20 15:00:02.000 GMT","metric_name":"matrix.cpu","rack":"b","host":"fixture-host","n":"1","total":"0.000000","minimum":"0.000000","maximum":"0.000000"}}
+{"preview":false,"offset":3,"lastrow":true,"result":{"_time":"2018-08-20 15:00:03.000 GMT","metric_name":"matrix.mem","rack":"b","host":"fixture-host","n":"2","total":"2048.000000","minimum":"1024.000000","maximum":"1024.000000"}}

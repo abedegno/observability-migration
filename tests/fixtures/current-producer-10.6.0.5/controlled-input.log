@@ -1,0 +1,8 @@
+2026-10-26T00:00:00.000000001Z case=tiny fraction
+2026-10-26T00:00:00.123456789Z case=nine digits
+2026-10-26T00:00:00.999999999Z case=carry boundary
+2026-10-26T00:00:01.000000000Z case=unicode café 🧪
+2026-10-26T00:00:02.000000000Z case=legitimate duplicate
+2026-10-26T00:00:02.000000000Z case=legitimate duplicate
+2038-01-19T03:14:07.123456789Z case=signed32 last second
+2038-01-19T03:14:08.987654321Z case=signed32 next second

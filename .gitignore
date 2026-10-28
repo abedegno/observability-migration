@@ -1,0 +1,13 @@
+.venv/
+upstream/
+__pycache__/
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+native/obs-native/target/
+.env
+.env.*
+.aws/
+.ssh/
+.DS_Store

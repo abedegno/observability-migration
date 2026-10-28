@@ -1,0 +1,99 @@
+{
+  "producer": {
+    "VERSION": "10.6.0.5",
+    "BUILD": "86587d4e3b27",
+    "PRODUCT": "splunk",
+    "PLATFORM": "Linux-x86_64"
+  },
+  "input_events": 8,
+  "input_sha256": "8658441c46d114da151a2dfd08ebf7323a22e568f5dd5addd4f23f3dc5d21e81",
+  "query": "search index=botsv3 | eval oracle_seconds=printf(\"%.0f\",floor(_time)), oracle_time=printf(\"%.10f\",_time) | fields _raw _time _subsecond _indextime host source sourcetype _bkt _cd oracle_time oracle_seconds",
+  "earliest_time": "0",
+  "latest_time": "2147483647.999999",
+  "buckets": {
+    "db_1792972802_1792972800_0": {
+      "1792972802-1792972800-11257488356638698987.tsidx": "e21753ae2d26f081bb74bc89ba8dce50fd2a32f9197e3f34153fa54748c66003",
+      "bloomfilter": "929398f9e93a4f24e1bf5ef977debd528dd1f281b179d8366746c7cdd039262e",
+      "bucket_info.csv": "49dd8484df5eaef791cbec13b6c9b7fc17db45e2b880e359a62041a0588546ef",
+      "Sources.data": "d5fb6a05fb26a85af0afaf4edec84e638bb663617232e3755c2e77089ae0db75",
+      "Strings.data": "1ac247a858b20f78fe2d1bd06fbb9961d054d3c094ce0da3d0b5a276d7f24831",
+      "Hosts.data": "58b5abbf083e65403f5665bd0c62c30f88ab3afb5d60aa8fe3ce3670cb0b0a64",
+      "SourceTypes.data": "ac6b5880128afea20266282a7b059a186ae7a29e693ccde7cbe7febbd0390e63",
+      ".rawSize": "387071454b158127fea5cc3f04d95bed131c730d8a10587194dbb320635083a8",
+      "optimize.result": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      ".sizeManifest4.1": "0619da9a25a45fa6ba8b1419156c409b31b03f662e89335b3dc9fe41dda9df62",
+      "rawdata/slicemin.dat": "38e42692da53d53559f233cd4a8e46647edebbf900563f21c71d0caf4d5bb4be",
+      "rawdata/slicesv2.dat": "0826af7581f7a89632fd1558d5478c15abb9945bd27aac78aaf79c5c34e8170e",
+      "rawdata/journal.zst": "6bb98d3c80ccccda7da1bf5d6a0f6fd0a684975cf3a08c66c7bfa9a50bc84464"
+    },
+    "db_2147483647_2147483647_1": {
+      "bloomfilter": "b7fb697c667272d89670a2abe23ac6b0d2d7069d4aadd80f999254b1d606b685",
+      "bucket_info.csv": "49dd8484df5eaef791cbec13b6c9b7fc17db45e2b880e359a62041a0588546ef",
+      "2147483647-2147483647-11257487420335849349.tsidx": "49cd00b055df65480837a237a10fb3d2503690a732ef72ae5ca9b3f3255b2c1d",
+      "Sources.data": "b29f796c8620bf503c0c1b9697816795aee107a1acb25dc2ebf39b931b4cf786",
+      "Strings.data": "2cea7f60d4e7a5f373550115078a4899c3d41484db6559731ed6a09441c507d0",
+      "Hosts.data": "e1c69f5eb69dd73876ac58d21e975ec57aa71d9e4023d81302792738177c76be",
+      "SourceTypes.data": "1335e91742e2747d2fc3bb91c444ae20f0e9484cfd1317a622d7ff47905e647a",
+      ".rawSize": "f7dbab4769334b25f2b4c0606fef276da29bc7477cc15f51f0967a6e477e7c94",
+      "optimize.result": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      ".sizeManifest4.1": "0619da9a25a45fa6ba8b1419156c409b31b03f662e89335b3dc9fe41dda9df62",
+      "rawdata/slicemin.dat": "00495daf002d2d467a040f007dda38219f6c782b162c6e81ef1cd0064bacef48",
+      "rawdata/slicesv2.dat": "c4c89e2b50d278b2401689f102cafb8ee888f525b078b36e923bf8b1e47977d5",
+      "rawdata/journal.zst": "e663de0e6f4a24a2792d3b6e41b11e9cd61efa25b649c2846363cab01153d261"
+    }
+  },
+  "offline_native_exports": [
+    {
+      "bucket": "db_1792972802_1792972800_0",
+      "exit_code": 0,
+      "csv_sha256": "3cbcc3c47df29348494ee76457669acfc9294afa8d5f69424e9e505fd61256b9"
+    },
+    {
+      "bucket": "db_2147483647_2147483647_1",
+      "exit_code": 0,
+      "csv_sha256": "142f9c5480b45bfb79f197c324542b8f4143c258dde65e2d577222be94f9a0e0"
+    }
+  ],
+  "boundary_observation": "Both original 2038 inputs are stored at whole second 2147483647. All eight warm-bucket search frames and native offline CSV agree; raw input text remains unchanged.",
+  "journal_compression": "native default; verify file magic independently",
+  "license": "CC0-1.0",
+  "authorization": "controlled nonprivate lab events generated for this toolkit",
+  "binary_origin": "native Splunk ingestion and hot-to-warm roll; no fabricated proprietary bytes",
+  "archive_sha256": "346d5bd22725722238c24a75eacdc9baa59d585278e782d94577d3f964d770a1",
+  "image": "splunk/splunk:10.6.0-rhel9@sha256:27338fe2834cf056546f2453e3d80c6eefeb363d8a35952e904efab93e509f63",
+  "generator_sha256": "f2094a07e275e91e6aee8fa605c6b69ce5b1e5d41c4fccb866486a7929a0d377",
+  "fixture_files": {
+    "controlled-input.log": "8658441c46d114da151a2dfd08ebf7323a22e568f5dd5addd4f23f3dc5d21e81",
+    "db_1792972802_1792972800_0/.rawSize": "387071454b158127fea5cc3f04d95bed131c730d8a10587194dbb320635083a8",
+    "db_1792972802_1792972800_0/.sizeManifest4.1": "0619da9a25a45fa6ba8b1419156c409b31b03f662e89335b3dc9fe41dda9df62",
+    "db_1792972802_1792972800_0/1792972802-1792972800-11257488356638698987.tsidx": "e21753ae2d26f081bb74bc89ba8dce50fd2a32f9197e3f34153fa54748c66003",
+    "db_1792972802_1792972800_0/Hosts.data": "58b5abbf083e65403f5665bd0c62c30f88ab3afb5d60aa8fe3ce3670cb0b0a64",
+    "db_1792972802_1792972800_0/SourceTypes.data": "ac6b5880128afea20266282a7b059a186ae7a29e693ccde7cbe7febbd0390e63",
+    "db_1792972802_1792972800_0/Sources.data": "d5fb6a05fb26a85af0afaf4edec84e638bb663617232e3755c2e77089ae0db75",
+    "db_1792972802_1792972800_0/Strings.data": "1ac247a858b20f78fe2d1bd06fbb9961d054d3c094ce0da3d0b5a276d7f24831",
+    "db_1792972802_1792972800_0/bloomfilter": "929398f9e93a4f24e1bf5ef977debd528dd1f281b179d8366746c7cdd039262e",
+    "db_1792972802_1792972800_0/bucket_info.csv": "49dd8484df5eaef791cbec13b6c9b7fc17db45e2b880e359a62041a0588546ef",
+    "db_1792972802_1792972800_0/optimize.result": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "db_1792972802_1792972800_0/rawdata/journal.zst": "6bb98d3c80ccccda7da1bf5d6a0f6fd0a684975cf3a08c66c7bfa9a50bc84464",
+    "db_1792972802_1792972800_0/rawdata/slicemin.dat": "38e42692da53d53559f233cd4a8e46647edebbf900563f21c71d0caf4d5bb4be",
+    "db_1792972802_1792972800_0/rawdata/slicesv2.dat": "0826af7581f7a89632fd1558d5478c15abb9945bd27aac78aaf79c5c34e8170e",
+    "db_1792972802_1792972800_0.csv": "3cbcc3c47df29348494ee76457669acfc9294afa8d5f69424e9e505fd61256b9",
+    "db_2147483647_2147483647_1/.rawSize": "f7dbab4769334b25f2b4c0606fef276da29bc7477cc15f51f0967a6e477e7c94",
+    "db_2147483647_2147483647_1/.sizeManifest4.1": "0619da9a25a45fa6ba8b1419156c409b31b03f662e89335b3dc9fe41dda9df62",
+    "db_2147483647_2147483647_1/2147483647-2147483647-11257487420335849349.tsidx": "49cd00b055df65480837a237a10fb3d2503690a732ef72ae5ca9b3f3255b2c1d",
+    "db_2147483647_2147483647_1/Hosts.data": "e1c69f5eb69dd73876ac58d21e975ec57aa71d9e4023d81302792738177c76be",
+    "db_2147483647_2147483647_1/SourceTypes.data": "1335e91742e2747d2fc3bb91c444ae20f0e9484cfd1317a622d7ff47905e647a",
+    "db_2147483647_2147483647_1/Sources.data": "b29f796c8620bf503c0c1b9697816795aee107a1acb25dc2ebf39b931b4cf786",
+    "db_2147483647_2147483647_1/Strings.data": "2cea7f60d4e7a5f373550115078a4899c3d41484db6559731ed6a09441c507d0",
+    "db_2147483647_2147483647_1/bloomfilter": "b7fb697c667272d89670a2abe23ac6b0d2d7069d4aadd80f999254b1d606b685",
+    "db_2147483647_2147483647_1/bucket_info.csv": "49dd8484df5eaef791cbec13b6c9b7fc17db45e2b880e359a62041a0588546ef",
+    "db_2147483647_2147483647_1/optimize.result": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "db_2147483647_2147483647_1/rawdata/journal.zst": "e663de0e6f4a24a2792d3b6e41b11e9cd61efa25b649c2846363cab01153d261",
+    "db_2147483647_2147483647_1/rawdata/slicemin.dat": "00495daf002d2d467a040f007dda38219f6c782b162c6e81ef1cd0064bacef48",
+    "db_2147483647_2147483647_1/rawdata/slicesv2.dat": "c4c89e2b50d278b2401689f102cafb8ee888f525b078b36e923bf8b1e47977d5",
+    "db_2147483647_2147483647_1.csv": "142f9c5480b45bfb79f197c324542b8f4143c258dde65e2d577222be94f9a0e0",
+    "events.jsonl": "80f86e8b3ba988c0ab30465b67a5f141db4568e4ec304be974daa83fa7593663",
+    "props.conf": "991e450d062647d098dd629a4d0c682d335e01ee001ba9ba5fe7426415f61544"
+  },
+  "native_search_events": 8
+}
