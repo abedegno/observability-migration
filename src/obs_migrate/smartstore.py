@@ -97,14 +97,17 @@ class AcquiredObjects:
             if type(identifier) is not str or len(identifier.split('~')) != 3 or type(guid) is not str or not GUID.fullmatch(guid):
                 raise ValueError('unverified SmartStore bucket/uploader identity')
             index, local_id, origin_guid = identifier.split('~')
-            if not index or not local_id.isdecimal() or origin_guid != guid:
-                raise ValueError('SmartStore receipt origin/uploader identity mismatch')
+            if not index or not local_id.isdecimal() or not GUID.fullmatch(origin_guid):
+                raise ValueError('unverified SmartStore bucket origin identity')
             bucket_name = _relative(manifest.get('path'))
-            if '/' in bucket_name or not bucket_name.startswith('db_') or not bucket_name.endswith('_'+guid):
+            if '/' in bucket_name or not bucket_name.startswith('db_') or not bucket_name.endswith('_'+origin_guid):
                 raise ValueError('unverified SmartStore native bucket path')
             prefix = key.rsplit('/', 1)[0]
             uploader = 'guidSplunk-'+guid
-            if prefix.rsplit('/',1)[-1] != local_id+'~'+guid:
+            distinct=origin_guid!=guid
+            if distinct and not bucket_name.endswith('_'+local_id+'_'+origin_guid):
+                raise ValueError('distinct-uploader bucket path/local id mismatch')
+            if prefix.rsplit('/',1)[-1] != local_id+'~'+origin_guid:
                 raise ValueError('SmartStore receipt key/bucket identity mismatch')
             members = {};member_keys = set();expansions = []
             for item in objects:
@@ -144,6 +147,8 @@ class AcquiredObjects:
             if siblings != member_keys | {key}:
                 raise ValueError('SmartStore uploader has unlisted/extra objects')
             if identifier in self._buckets:raise ValueError('multiple SmartStore generations for one bucket are ambiguous')
+            if distinct and any(name.startswith('rawdata/deletes/') for name in members):
+                raise ValueError('unqualified distinct-uploader deletion context')
             journal_names = [n for n in members if n in ('rawdata/journal.gz','rawdata/journal.zst')]
             if len(journal_names) != 1:raise ValueError('SmartStore receipt requires exactly one observed journal')
             self._buckets[identifier] = {'id': identifier, 'index': index, 'bucket_name': bucket_name,
@@ -151,7 +156,9 @@ class AcquiredObjects:
                 'manifest': manifest, 'native_user_data': user, 'native_content_hash_verified': False,
                 **({'expanded_prefixes':expansions} if expansions else {}),
                 'members': members, 'journal_key': members[journal_names[0]],
-                'selection': 'explicit_physical_copy_only', 'search_visibility': 'UNVERIFIED'}
+                'selection': 'explicit_physical_copy_only', 'search_visibility': 'UNVERIFIED',
+                **({'copy_identity':{'origin_guid':origin_guid,'uploader_guid':guid,
+                    'relation':'observed_distinct_origin_uploader','ownership':'UNVERIFIED'}} if distinct else {})}
             assigned.update(siblings)
         if not self._buckets:raise ValueError('no supported native SmartStore receipts in acquisition')
         self._report = {'format': 'obs-acquired-smartstore-1', 'inventory_sha256': self.inventory_sha256,

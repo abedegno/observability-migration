@@ -73,3 +73,20 @@ This extends experimental physical extraction only. It does not establish native
 search visibility, distributed ownership, concurrent upload semantics, live atomic
 snapshots or DDSS packaging. The genuine regression control and native references
 are in `tests/fixtures/smartstore-tsidx9-10.6`.
+
+## Distinct SmartStore origin and uploader
+
+A native failover can retain the bucket origin GUID while a different peer uploads
+its objects. The reader validates these separately: manifest ID, native bucket
+path and receipt key retain the origin; object members use the declared uploader.
+The observed Zstd/TSIDX8 flags0 control retains all fourteen events and matches
+native before/after search and CSV references. Both Arrow and journal backends
+preserve original stored fields and Arrow/Parquet transports.
+
+Distinct copies expose `copy_identity` with both GUIDs and ownership `UNVERIFIED`.
+This is explicit receipt-bound physical-copy access; it does not elect a cluster
+owner or choose among generations. Multiple receipts for one bucket, unlisted
+siblings and inconsistent identities refuse. Distinct-uploader deletion contexts
+remain unqualified and refuse; existing same-origin deletion behavior is unchanged.
+The control is in `tests/fixtures/smartstore-foreign-uploader-10.6`. No production
+licence material is bundled or needed by the offline reader.
