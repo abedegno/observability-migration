@@ -92,7 +92,7 @@ budget even if its final result is only a count. Select a bounded source predica
 or register explicit dataset columns as below. A qualified native projection is
 another option. Budgets never increase implicitly.
 Both retain SQL residual filters, physical-data semantics and provenance. Direct file/bucket selection accepts its own explicit profile as described in
-the [data contract](data-format.md); snapshot SQL qualification remains separate.
+the [data contract](data-format.md); explicit snapshot views are described below.
 
 
 ### Explicit capture DatasetTable columns
@@ -165,6 +165,58 @@ remain canonical. Defaults and legacy behavior are unchanged; explicit larger
 profiles refuse MSIDX1/2. Failed registration commits no table/input charge;
 retained exceptions and cancelled query streams permit subsequent reuse.
 
-This does not add a profile option or projection pushdown to `snapshot-sql`.
-That separate provider prepares a complete physical full-schema snapshot before
-SQL; its admission and Arrow limits need separate measurement and qualification.
+The bucket path is separate from the explicit projected snapshot path below.
+Full-schema snapshot preparation still obeys the same admission and Arrow limits;
+SQL text does not automatically reduce that input.
+
+
+### Explicit projected full-snapshot SQL
+
+Choose the complete physical snapshot table schema before SQL preparation:
+
+```python
+session.register_metric_snapshot("points", path,
+    experimental=True, offline_snapshot=True,
+    expected_snapshot_sha256=trusted_snapshot_sha256,
+    limits=LARGE_METRICS,
+    columns=["source_sha256", "point_ordinal", "host", "indexed_time"])
+result = session.sql("select count(*) as n from points")
+```
+
+CLI equivalent:
+
+```sh
+obsmigrate metrics snapshot-sql /offline/bucket --experimental --offline-snapshot \
+  --resource-profile large --expected-snapshot-sha256 "$SNAPSHOT_SHA256" \
+  --snapshot-column source_sha256 --snapshot-column point_ordinal \
+  --snapshot-column host --snapshot-column indexed_time \
+  --sql 'select count(*) as n from points' --out count.parquet
+```
+
+Use `columns=["point_ordinal"]` for count-only work. Explicit columns must be a
+nonempty list/tuple of unique canonical names; order, nullable types and schema
+metadata are preserved. SQL cannot access omitted fields. Every original field,
+including omitted numeric values, is validated in full per-file preflight before
+projected emission. All slices and final source/tree/parent checks must succeed
+before the table is registered. No source predicate, automatic SQL projection,
+search-visibility interpretation or indexed-search behavior is introduced.
+
+`columns=None` retains the original full-schema preparation; `limits=None`
+retains default admission. Explicit larger policies still refuse legacy formats;
+default-policy projections reuse the verified MSIDX1/2 readers. Full-schema input
+can still exceed the unchanged256MiB cap even when explicit admission succeeds.
+Selected columns are eagerly retained in a MemTable; cumulative input, shared
+session, result and engine budgets remain independent and unchanged.
+
+The selected schema is in `sources.<table>.query.columns` and its query identity.
+Explicit resource policy remains outside that identity in the source report.
+Snapshot/original-member identities do not change with either setting. Projected
+`storage_json` equals the original bulk snapshot envelope, including exactly one
+first-row manifest across slices; it adds no selection-query envelope. Result-level
+provenance remains available when SQL projects row envelopes away.
+
+Library consumers can also use `Snapshot.records(..., columns=[...])`. Finish or
+close owned iterators; only successful exhaustion proves complete validation.
+Preparation failure commits no table/input charge and closes owned rows/readers;
+retained error tracebacks and cancelled queries permit session reuse. These are
+representation/engine byte limits, not a total process RSS guarantee.

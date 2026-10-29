@@ -116,6 +116,8 @@ def main(argv=None):
     p=metric_commands.add_parser('snapshot-sql',help='bounded full physical metric scan into Arrow; all SQL filters residual; no native pruning')
     p.add_argument('path');p.add_argument('--experimental',action='store_true');p.add_argument('--offline-snapshot',action='store_true')
     p.add_argument('--include-inactive',action='store_true');p.add_argument('--index');p.add_argument('--bucket-id')
+    p.add_argument('--snapshot-column',action='append',help='repeat canonical fields to restrict the complete snapshot table schema')
+    p.add_argument('--resource-profile',choices=['default','large'],default='default')
     p.add_argument('--expected-snapshot-sha256',help='trusted complete metric inventory identity, checked before Arrow materialization')
     p.add_argument('--sql',required=True,help='read-only SQL over points; complete physical source scan')
     p.add_argument('--out',required=True);p.add_argument('--format',choices=['parquet','arrow'],default='parquet')
@@ -252,7 +254,8 @@ def main(argv=None):
                                       max_engine_bytes=args.max_engine_bytes)
                 session.register_metric_snapshot('points',args.path,experimental=args.experimental,
                     offline_snapshot=args.offline_snapshot,include_inactive=args.include_inactive,index=args.index,
-                    bucket_id=args.bucket_id,expected_snapshot_sha256=args.expected_snapshot_sha256)
+                    bucket_id=args.bucket_id,expected_snapshot_sha256=args.expected_snapshot_sha256,
+                    columns=args.snapshot_column,limits=limits)
                 result=session.sql(args.sql).write(args.out,args.format)
             elif args.command=="capture-create":
                 from .capture import create

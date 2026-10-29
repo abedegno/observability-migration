@@ -88,8 +88,8 @@ charge; `complete` becomes true only after full source exhaustion and final sour
 checks. Closing a partial iterator releases cursor buffers and records incomplete
 validation. Larger profiles apply to MSIDX4 file/bucket bulk export and verification,
 explicitly opted-in immutable capture creation, reopening and capture SQL, and
-explicit direct file/bucket selection. Default limits remain unchanged; snapshot
-SQL qualification and legacy-reader policies remain separate. Capture policy, provider budgets and scope are described in the
+explicit direct file/bucket selection. Default limits remain unchanged; full-schema snapshot
+materialization and legacy-reader policies retain their independent bounds. Capture policy, provider budgets and scope are described in the
 [federation guide](federation.md#explicit-larger-metric-captures).
 
 
@@ -126,8 +126,9 @@ continues to verify under its original default contract.
 Source contexts and partial bucket iterators release numeric cursors on close,
 including errors whose tracebacks are retained. Library consumers must close
 partially consumed iterators and exhaust successfully before committing results.
-These are exact physical predicates; larger snapshot SQL, indexed-search visibility
-and new storage profiles require separate qualification.
+These are exact physical predicates; indexed-search visibility and new storage
+profiles require separate qualification. Explicit projected snapshot SQL reuses
+the same finite policy as described below.
 
 
 Bounded offline `bucket-sql` can explicitly reuse the same MSIDX4 profile through
@@ -135,3 +136,13 @@ Bounded offline `bucket-sql` can explicitly reuse the same MSIDX4 profile throug
 Exact source predicates bound the eager canonical input; SQL filters remain engine
 residuals. See [bucket SQL](federation.md#bounded-larger-offline-bucket-sql) for the
 separate input/result/engine bounds and the full-snapshot distinction.
+
+
+Full-snapshot SQL can expose an explicit nonempty canonical field schema through
+`register_metric_snapshot(..., columns=[...], limits=profile)` or repeated
+`metrics snapshot-sql --snapshot-column FIELD`. All original fields are still
+validated before projected emission, with source checks before registration.
+Selected field order/types/bytes and original bulk snapshot provenance remain
+unchanged. Columns participate in source query identity; execution policy remains
+outside it. `None` retains the previous full-schema/default-policy contract.
+See [projected snapshot SQL](federation.md#explicit-projected-full-snapshot-sql).

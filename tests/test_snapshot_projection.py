@@ -83,3 +83,10 @@ def test_storage_only_full_snapshot_composed_native_slices_keep_one_envelope(tmp
     actual=list(snapshot.records(experimental=True,columns=['storage_json']))
     assert actual==expected and len(actual)==1206
     assert sum('bucket_snapshot_manifest' in json.loads(r['storage_json']) for r in actual)==1
+
+
+def test_snapshot_sql_cli_help_lists_columns_and_profile(capsys):
+    from obs_migrate.cli import main
+    with pytest.raises(SystemExit) as result:main(['metrics','snapshot-sql','--help'])
+    assert result.value.code==0
+    help=capsys.readouterr().out;assert '--snapshot-column' in help and '--resource-profile' in help

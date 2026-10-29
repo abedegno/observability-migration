@@ -118,14 +118,18 @@ class BucketSession:
         finally:self._lock.release()
 
     def register_metric_snapshot(self,name,path,*,experimental=False,offline_snapshot=False,
-                                 include_inactive=False,index=None,bucket_id=None,expected_snapshot_sha256=None):
+                                 include_inactive=False,index=None,bucket_id=None,expected_snapshot_sha256=None,
+                                 columns=None,limits=None):
         """Eager complete physical metric scan, including supported MSIDX4 profiles.
 
         Reuse existing inventory/record readers; no native source predicate or
         posting pruning is performed. All SQL filtering stays in the engine.
         Sources are checked throughout preparation and before/after each query.
+        Explicit columns use full per-file preflight before projected decoding.
         """
         from .source_identity import normalize_sha256,require_sha256
+        from .metric_io import projected_schema
+        from .native_scan import _batches
         expected_snapshot_sha256=normalize_sha256(expected_snapshot_sha256)
         if not experimental:raise ValueError('metric snapshot registration is experimental')
         if not isinstance(name,str) or not re.fullmatch(r'[a-z][a-z0-9_]{0,62}',name):
@@ -135,11 +139,14 @@ class BucketSession:
             if name in self._sources:raise ValueError('table already registered')
             if len(self._sources)>=32:raise ValueError('session table limit exceeded')
             started=perf_counter()
-            snapshot=metric_bucket.Snapshot(path,offline_snapshot=offline_snapshot,include_inactive=include_inactive)
+            snapshot=metric_bucket.Snapshot(path,offline_snapshot=offline_snapshot,include_inactive=include_inactive,limits=limits)
             require_sha256(snapshot.sha256,expected_snapshot_sha256,'metric snapshot')
+            schema=projected_schema(snapshot.reader.SCHEMA,columns)
+            columns=None if columns is None else tuple(schema.names)
             batches=[];size=rows=0
-            records=snapshot.records(experimental=True,index=index,bucket_id=bucket_id)
-            stream=snapshot.reader.batches(records)
+            records=snapshot.records(experimental=True,index=index,bucket_id=bucket_id,columns=columns)
+            stream=(snapshot.reader.batches(records) if columns is None
+                    else _batches(records,schema,min(self.max_input_bytes,8*1024**2)))
             try:
                 for batch in stream:
                     size+=batch.nbytes;rows+=batch.num_rows
@@ -153,11 +160,14 @@ class BucketSession:
             query={'metric_snapshot_query_schema':1,'snapshot_sha256':snapshot.sha256,
                    'source_format':snapshot.reader.FORMAT,'selection':'all_physical_points;complete_scan;no_source_predicates',
                    'labels':{'index':index,'bucket_id':bucket_id}}
+            if columns is not None:query['columns']=list(columns)
             report={'query':query,'query_sha256':hashlib.sha256(metric_bucket._json(query)).hexdigest(),
                     'snapshot_manifest':snapshot.inventory(),'source_format':snapshot.reader.FORMAT,
                     'physical_points':rows,'full_preflight_scan':True,'sql_filter_pushdown':False,
-                    'scan_strategy':'eager_full_physical_scan;SQL_residual_filters',
-                    'search_visibility':'UNVERIFIED','indexed_search_supported':False}
+                    'scan_strategy':('eager_full_physical_scan;SQL_residual_filters' if columns is None else
+                                     'eager_full_preflight_then_explicit_projection;SQL_residual_filters'),
+                    'search_visibility':'UNVERIFIED','indexed_search_supported':False,
+                    **({'metric_resource_profile':snapshot.limits.describe()} if snapshot.limits is not None else {})}
             self._context.register_record_batches(name,[batches])
             self._sources[name]={'report':report,'arrow_bytes':size,'rows':rows,
                 'prepare_seconds':perf_counter()-started,'check':snapshot.finish,

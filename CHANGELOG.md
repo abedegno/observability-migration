@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Add explicit full-snapshot field schemas and bounded MSIDX4 policies for metric
+  snapshot SQL, validating all source fields before projected preparation.
+- Run eager SQL coverage whenever DataFusion is installed, without requiring the
+  optional native bridge.
+
 - Expose existing explicit MSIDX4 resource profiles in bounded offline bucket SQL;
   preserve default admission, exact source validation and SQL byte budgets.
 
