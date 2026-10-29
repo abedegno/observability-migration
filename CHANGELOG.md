@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Read genuine standard-frame LZ4 event/retained-metric journals through the
+  existing decoder, local bucket discovery, linked access and event jobs; preserve
+  original source identity and reject incomplete/corrupt/trailing frames.
+- Add pinned Python LZ4 dependency and native 7.0/10.6 fixtures with independent
+  exports, exact metadata/time/value checks and Parquet/job recovery coverage.
+
 - Add explicit full-snapshot field schemas and bounded MSIDX4 policies for metric
   snapshot SQL, validating all source fields before projected preparation.
 - Run eager SQL coverage whenever DataFusion is installed, without requiring the

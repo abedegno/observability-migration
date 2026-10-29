@@ -1,0 +1,1 @@
+{"preview":false,"offset":0,"lastrow":true,"result":{"_raw":"{\"rack\":\"c\",\"metric_name:matrix.cpu\":3.5,\"metric_name:matrix.mem\":2048}","_time":"2018-08-20 15:00:04.000 GMT","host":"fixture-host","metric_name:matrix.cpu":"3.5","metric_name:matrix.mem":"2048","rack":"c","source":"controlled-metric-input","sourcetype":"obs_matrix_metric"}}

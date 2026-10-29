@@ -1,0 +1,211 @@
+[
+  {
+    "payload": {
+      "time": 1534777200.125,
+      "index": "metrics_default",
+      "host": "fixture-host",
+      "source": "controlled-metric-input",
+      "sourcetype": "obs_matrix_metric",
+      "event": "metric",
+      "fields": {
+        "metric_name": "matrix.cpu",
+        "_value": 1.25,
+        "rack": "a"
+      }
+    },
+    "response": {
+      "text": "Success",
+      "code": 0
+    }
+  },
+  {
+    "payload": {
+      "time": 1534777201.25,
+      "index": "metrics_default",
+      "host": "fixture-host",
+      "source": "controlled-metric-input",
+      "sourcetype": "obs_matrix_metric",
+      "event": "metric",
+      "fields": {
+        "metric_name": "matrix.cpu",
+        "_value": -2.5,
+        "rack": "a"
+      }
+    },
+    "response": {
+      "text": "Success",
+      "code": 0
+    }
+  },
+  {
+    "payload": {
+      "time": 1534777202.5,
+      "index": "metrics_default",
+      "host": "fixture-host",
+      "source": "controlled-metric-input",
+      "sourcetype": "obs_matrix_metric",
+      "event": "metric",
+      "fields": {
+        "metric_name": "matrix.cpu",
+        "_value": 0.0,
+        "rack": "b"
+      }
+    },
+    "response": {
+      "text": "Success",
+      "code": 0
+    }
+  },
+  {
+    "payload": {
+      "time": 1534777203.75,
+      "index": "metrics_default",
+      "host": "fixture-host",
+      "source": "controlled-metric-input",
+      "sourcetype": "obs_matrix_metric",
+      "event": "metric",
+      "fields": {
+        "metric_name": "matrix.mem",
+        "_value": 1024.0,
+        "rack": "b"
+      }
+    },
+    "response": {
+      "text": "Success",
+      "code": 0
+    }
+  },
+  {
+    "payload": {
+      "time": 1534777203.75,
+      "index": "metrics_default",
+      "host": "fixture-host",
+      "source": "controlled-metric-input",
+      "sourcetype": "obs_matrix_metric",
+      "event": "metric",
+      "fields": {
+        "metric_name": "matrix.mem",
+        "_value": 1024.0,
+        "rack": "b"
+      }
+    },
+    "response": {
+      "text": "Success",
+      "code": 0
+    }
+  },
+  {
+    "payload": {
+      "time": 1534777200.125,
+      "index": "metrics_retained",
+      "host": "fixture-host",
+      "source": "controlled-metric-input",
+      "sourcetype": "obs_matrix_metric",
+      "event": "metric",
+      "fields": {
+        "metric_name": "matrix.cpu",
+        "_value": 1.25,
+        "rack": "a"
+      }
+    },
+    "response": {
+      "text": "Success",
+      "code": 0
+    }
+  },
+  {
+    "payload": {
+      "time": 1534777201.25,
+      "index": "metrics_retained",
+      "host": "fixture-host",
+      "source": "controlled-metric-input",
+      "sourcetype": "obs_matrix_metric",
+      "event": "metric",
+      "fields": {
+        "metric_name": "matrix.cpu",
+        "_value": -2.5,
+        "rack": "a"
+      }
+    },
+    "response": {
+      "text": "Success",
+      "code": 0
+    }
+  },
+  {
+    "payload": {
+      "time": 1534777202.5,
+      "index": "metrics_retained",
+      "host": "fixture-host",
+      "source": "controlled-metric-input",
+      "sourcetype": "obs_matrix_metric",
+      "event": "metric",
+      "fields": {
+        "metric_name": "matrix.cpu",
+        "_value": 0.0,
+        "rack": "b"
+      }
+    },
+    "response": {
+      "text": "Success",
+      "code": 0
+    }
+  },
+  {
+    "payload": {
+      "time": 1534777203.75,
+      "index": "metrics_retained",
+      "host": "fixture-host",
+      "source": "controlled-metric-input",
+      "sourcetype": "obs_matrix_metric",
+      "event": "metric",
+      "fields": {
+        "metric_name": "matrix.mem",
+        "_value": 1024.0,
+        "rack": "b"
+      }
+    },
+    "response": {
+      "text": "Success",
+      "code": 0
+    }
+  },
+  {
+    "payload": {
+      "time": 1534777203.75,
+      "index": "metrics_retained",
+      "host": "fixture-host",
+      "source": "controlled-metric-input",
+      "sourcetype": "obs_matrix_metric",
+      "event": "metric",
+      "fields": {
+        "metric_name": "matrix.mem",
+        "_value": 1024.0,
+        "rack": "b"
+      }
+    },
+    "response": {
+      "text": "Success",
+      "code": 0
+    }
+  },
+  {
+    "payload": {
+      "time": 1534777204.875,
+      "index": "metrics_multi",
+      "host": "fixture-host",
+      "source": "controlled-metric-input",
+      "sourcetype": "obs_matrix_metric",
+      "event": "metric",
+      "fields": {
+        "metric_name:matrix.cpu": 3.5,
+        "metric_name:matrix.mem": 2048.0,
+        "rack": "c"
+      }
+    },
+    "response": {
+      "text": "Success",
+      "code": 0
+    }
+  }
+]

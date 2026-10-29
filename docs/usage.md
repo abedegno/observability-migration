@@ -7,6 +7,11 @@ profiles fail without publishing a complete output.
 
 ## Journals and exports
 
+Recognised local gzip, Zstd, standard-frame LZ4 and plain journals use the same
+commands. A bucket may contain exactly one `rawdata/journal`, `journal.gz`,
+`journal.zst` or `journal.lz4`. The package installs the pinned Python LZ4 codec;
+no external LZ4 executable is required.
+
 ```sh
 obsmigrate buckets inspect /offline/bucket
 obsmigrate buckets export /offline/bucket --experimental --out /derived/events.parquet

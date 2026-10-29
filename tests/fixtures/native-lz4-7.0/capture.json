@@ -1,0 +1,20 @@
+{
+  "status": "CAPTURED",
+  "image": "splunk/splunk:7.0.0@sha256:216f8511d99b7e79ac147cf49829b92ad49a92ec8de35baf5beaf1bb50d9316c",
+  "producer": {
+    "PLATFORM": "Linux-x86_64",
+    "PRODUCT": "splunk",
+    "VERSION": "7.0.0",
+    "BUILD": "c8a78efdd40f"
+  },
+  "archive_sha256": "531b68cd48782dbd8adf8d1fb9343e1704f94e330f2c4917d0b5b9d0416b988f",
+  "runtime_sha256": "1c9185e05fe4e28d3b7db8e9dbc230e4dcf6663f0b0f6c3e00ac5c864275c7c8",
+  "isolation": {
+    "network": "none",
+    "ports": {},
+    "memory": 4294967296,
+    "native_uid_dropped": true,
+    "init": true
+  },
+  "scope": "native fixtures and oracles; capture alone does not establish reader/metric support"
+}

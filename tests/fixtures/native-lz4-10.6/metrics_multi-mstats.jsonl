@@ -1,0 +1,2 @@
+{"preview":false,"offset":0,"result":{"_time":"2018-08-20 15:00:04.000 GMT","metric_name":"matrix.cpu","rack":"c","host":"fixture-host","n":"1","total":"3.500000","minimum":"3.500000","maximum":"3.500000"}}
+{"preview":false,"offset":1,"lastrow":true,"result":{"_time":"2018-08-20 15:00:04.000 GMT","metric_name":"matrix.mem","rack":"c","host":"fixture-host","n":"1","total":"2048.000000","minimum":"2048.000000","maximum":"2048.000000"}}

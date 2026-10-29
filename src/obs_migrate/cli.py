@@ -424,7 +424,7 @@ def main(argv=None):
         return 130
     except (OSError, ValueError, RuntimeError, ImportError) as e:
         message=str(e)
-        if isinstance(e,ModuleNotFoundError) and e.name in ('pyarrow','zstandard'):
+        if isinstance(e,ModuleNotFoundError) and e.name in ('pyarrow','zstandard','lz4'):
             message=('required dependency '+e.name+' is unavailable; use this environment\'s Python to run '
                      f'python -m pip install /path/to/observability_migration_toolkit-{__version__}-py3-none-any.whl '
                      '(offline: add --no-index --find-links /path/to/wheelhouse), then python -m pip check')

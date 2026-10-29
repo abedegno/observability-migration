@@ -26,3 +26,10 @@ The fixtures are small, redistributable examples with original binary bytes:
 These samples demonstrate limited observed profiles. They do not certify every
 producer setting, DDSS layout, query semantic or proprietary format variation.
 Never substitute fabricated proprietary binary data for compatibility evidence.
+
+- `native-lz4-7.0` and `native-lz4-10.6`: unchanged native LZ4 event and metric
+  buckets from isolated pinned Splunk 7.0.0/10.6.0.5 producers, stopped before final
+  copies. Controlled inputs, effective LZ4 configuration, native query/CSV
+  references and original file hashes are retained under CC0-1.0. An unsupported
+  7.0 multi-measurement submission and the genuine 10.6 default metric stub remain
+  explicit producer/reader boundaries, not fabricated empty metric fixtures.

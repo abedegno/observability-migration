@@ -7,7 +7,7 @@ from . import __version__,decoder_source
 
 def doctor():
     versions={}
-    for name in ('pyarrow','zstandard','datafusion'):
+    for name in ('pyarrow','zstandard','lz4','datafusion'):
         try:versions[name]=importlib.metadata.version(name)
         except importlib.metadata.PackageNotFoundError:versions[name]=None
     try:
@@ -22,7 +22,7 @@ def doctor():
     ready=decoder['status']=='ready' and all(versions[name] is not None for name in ('pyarrow','zstandard'));zstd=shutil.which('zstd') is not None
     return {'runtime_schema':1,'toolkit':__version__,'python':platform.python_version(),'platform':platform.platform(),
         'dependencies':versions,'decoder':decoder,'native_federation_bridge':native,
-        'capabilities':{'physical_event_indexes':True,'event_journal_gzip_or_plain':ready,'event_journal_zstd':ready,
+        'capabilities':{'physical_event_indexes':True,'event_journal_gzip_or_plain':ready,'event_journal_zstd':ready,'event_journal_lz4':ready and versions['lz4'] is not None,
             'zstd_cli_integrity_preflight_available':zstd,'zstd_cli_required':False,'zstd_integrity_backend':'bounded_standard_frames_and_library_EOF_checksums','upstream_rust_decoder_required':False,
             'eager_sql':versions['datafusion']=='55.0.0','direct_native_sql':native['compatible']},
         'scope':'environment readiness only;experimental per-profile source validation remains mandatory;no native SPL/search visibility certification',

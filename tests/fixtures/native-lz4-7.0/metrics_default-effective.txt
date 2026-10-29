@@ -1,0 +1,4 @@
+datatype = metric
+journalCompression = lz4
+quarantineFutureSecs = 2000000000
+quarantinePastSecs = 2000000000

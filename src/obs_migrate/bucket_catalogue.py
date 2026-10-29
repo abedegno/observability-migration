@@ -19,7 +19,7 @@ MAX_BYTES = 8 * 1024**3
 MAX_DEPTH = 16
 MAX_ROOT_SIDECAR = 1024**2
 MAX_ROOT_SIDECARS = 4 * 1024**2
-JOURNALS = ('rawdata/journal', 'rawdata/journal.gz', 'rawdata/journal.zst')
+JOURNALS = ('rawdata/journal', 'rawdata/journal.gz', 'rawdata/journal.zst', 'rawdata/journal.lz4')
 
 
 def _canonical(value):

@@ -1,0 +1,187 @@
+{
+  "input_event_count": 4, 
+  "license_group": "Free", 
+  "license": "CC0-1.0", 
+  "offline_capture": "daemon stopped before final copies", 
+  "authorization": "controlled nonprivate lab data", 
+  "producer": {
+    "PLATFORM": "Linux-x86_64", 
+    "PRODUCT": "splunk", 
+    "VERSION": "7.0.0", 
+    "BUILD": "c8a78efdd40f"
+  }, 
+  "binary_origin": "native ingestion and hot-to-warm roll; no fabricated bucket bytes", 
+  "bulk_points_per_single_index": 0, 
+  "single_metric_inputs_per_index": 5, 
+  "indexes": {
+    "matrix_events": {
+      "datatype": "event", 
+      "buckets": [
+        {
+          "files": {
+            "rawdata/slicesv2.dat": "309a8c0d38a2f866d756b0b4183bc3325b2b028b01db6e50a4ad4db05af24230", 
+            "rawdata/journal.lz4": "533c4eafbada24c0f62efec4912be7e2d9d1434be9b1c77334979c31436cc264", 
+            "optimize.result": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", 
+            "SourceTypes.data": "e436263da573a01b60009fad897bf48453ebb5432552296a390dbd51a738b717", 
+            "Sources.data": "5f5e17cf168019dd206e44e941440e6e4ac279ba9f70e8732b7c3bd365e1831a", 
+            ".sizeManifest4.1": "0619da9a25a45fa6ba8b1419156c409b31b03f662e89335b3dc9fe41dda9df62", 
+            "bucket_info.csv": "5f8240fcdb241471c654bcf2b650d519373551f10523fe4f2f7db5748d52c421", 
+            "1534777202-1534777200-10464647474081533971.tsidx": "5d464cb103778f03ce27e2e8f778553600dc3738d01a516f975cb7754af578d9", 
+            ".rawSize": "017242aed0751adb88388d165183d00ebec8345e029638bf0d0688afdbf91deb", 
+            "Strings.data": "81ec50097597742cc9ea94d77dfca7978c7ebb76e50c1ccc4d7f807041c3537d", 
+            "rawdata/slicemin.dat": "fdce88313f3b4afb0ac50968c54105692b15ec1646fa8a575dcd041fc59ed41b", 
+            "bloomfilter": "c17ed3d8a460f2a8a2cc39930a7ca4669033025e1f6da45f1626f2290da95132", 
+            "Hosts.data": "ee261cb5f5b4bb74ec080f04649fa924ac943ae2f31f14a01eb52cef517093ea"
+          }, 
+          "exporttool": {
+            "stderr_bytes": 64, 
+            "stdout_bytes": 0, 
+            "csv_sha256": "d9b2ba292b9d09d2ad7729befbcb4a7700477ed98d80ec24e1ddbd7a7e3ea354", 
+            "exit_code": 0
+          }, 
+          "bucket": "db_1534777202_1534777200_0"
+        }
+      ], 
+      "effective_settings": [
+        "datatype = event", 
+        "journalCompression = lz4", 
+        "quarantineFutureSecs = 2000000000", 
+        "quarantinePastSecs = 2000000000"
+      ], 
+      "post_roll_journal_size_changes": [], 
+      "native_searches": [
+        {
+          "status": "OK", 
+          "query": "search index=matrix_events | eval oracle_seconds=printf(\"%.0f\",floor(_time)) | fields _raw _time _subsecond _indextime host source sourcetype _bkt _cd oracle_seconds", 
+          "rows": 4, 
+          "sha256": "e74e911c75aa25a7248c647e7c4afee21f132682a2a444162b76a913b4505c2e"
+        }
+      ]
+    }, 
+    "metrics_multi": {
+      "datatype": "metric", 
+      "buckets": [], 
+      "effective_settings": [
+        "datatype = metric", 
+        "journalCompression = lz4", 
+        "quarantineFutureSecs = 2000000000", 
+        "quarantinePastSecs = 2000000000"
+      ], 
+      "post_roll_journal_size_changes": [], 
+      "native_searches": [
+        {
+          "status": "OK", 
+          "query": "| mstats count(_value) AS n sum(_value) AS total min(_value) AS minimum max(_value) AS maximum WHERE index=metrics_multi metric_name=* BY metric_name,rack,host span=1s", 
+          "rows": 0, 
+          "sha256": "5dbd1f6446e629e4e1a781601cb85bead3d96e0a21360ab2859cf559eecb22a3"
+        }, 
+        {
+          "status": "UNAVAILABLE", 
+          "query": "| mpreview index=metrics_multi target_per_timeseries=1000", 
+          "message": "{\"messages\":[{\"type\":\"UNKNOWN_-1183928616\",\"text\":\"Missing or malformed messages.conf stanza for SEARCHFACTORY:UNKNOWN_OP__mpreview\",\"help\":\"\"}]}", 
+          "http_status": 400
+        }
+      ]
+    }, 
+    "metrics_retained": {
+      "datatype": "metric", 
+      "buckets": [
+        {
+          "files": {
+            "rawdata/slicesv2.dat": "37f4cb486c3704dca5842480e1ad0a20c5067c0d28a754c27fd8d58034861577", 
+            "optimize.result": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", 
+            "SourceTypes.data": "f5ff58f4458606efe47cc3e5ce170f7ecb75b78dc13b5dfd759eecfccabf6d81", 
+            "Sources.data": "ef644fce49349e8a65106425ee5fdfb91b78b346b13cebf5c734f54b82256cc4", 
+            ".sizeManifest4.1": "0619da9a25a45fa6ba8b1419156c409b31b03f662e89335b3dc9fe41dda9df62", 
+            "bucket_info.csv": "5f8240fcdb241471c654bcf2b650d519373551f10523fe4f2f7db5748d52c421", 
+            "Strings.data": "a8aa9c203dc4d56cc2fc6d7bc7a514caadbdc571da5e9159915ffb02ec578103", 
+            ".rawSize": "f4ccd05b3271c386ee55d9876c7450012a3b361e5065c09dc22075e38b3cc35c", 
+            "rawdata/journal.lz4": "2188e5408b88942936e9e7231c0e82d2adaa55e8f8b1a026a065f0813dc18bbf", 
+            "rawdata/slicemin.dat": "1638067e68e673218d0afceecebd857646bb5de7ef763d664948aa60ddadd9c6", 
+            "bloomfilter": "63bc725350e0a74835085a2c8476dc396968ba4e48ba9463b4edeccea9e02fb8", 
+            "1534777203-1534777200-10464655058993783143.tsidx": "848a774dd99bcbdb3cb0c25c9424f44ecec3b4dcfc81cbd4f4f11bbf186f5f1e", 
+            "Hosts.data": "075b50ed0ffd60673e41f3cb119c32daaecbb9dbc30ee2b3e403f5540484e7b3"
+          }, 
+          "exporttool": {
+            "stderr_bytes": 64, 
+            "stdout_bytes": 0, 
+            "csv_sha256": "f6027336bab3f2068179fe6fc286bea16f26523c32fe1237f29eba9bd2c53b06", 
+            "exit_code": 0
+          }, 
+          "bucket": "db_1534777203_1534777200_0"
+        }
+      ], 
+      "effective_settings": [
+        "datatype = metric", 
+        "journalCompression = lz4", 
+        "quarantineFutureSecs = 2000000000", 
+        "quarantinePastSecs = 2000000000"
+      ], 
+      "post_roll_journal_size_changes": [], 
+      "native_searches": [
+        {
+          "status": "OK", 
+          "query": "| mstats count(_value) AS n sum(_value) AS total min(_value) AS minimum max(_value) AS maximum WHERE index=metrics_retained metric_name=* BY metric_name,rack,host span=1s", 
+          "rows": 4, 
+          "sha256": "c9de840d1a0fd18c37ad88b0c0ad7764db1913a76a340a40fe81d8afce2fa943"
+        }, 
+        {
+          "status": "UNAVAILABLE", 
+          "query": "| mpreview index=metrics_retained target_per_timeseries=1000", 
+          "message": "{\"messages\":[{\"type\":\"UNKNOWN_-1183928616\",\"text\":\"Missing or malformed messages.conf stanza for SEARCHFACTORY:UNKNOWN_OP__mpreview\",\"help\":\"\"}]}", 
+          "http_status": 400
+        }
+      ]
+    }, 
+    "metrics_default": {
+      "datatype": "metric", 
+      "buckets": [
+        {
+          "files": {
+            "rawdata/slicesv2.dat": "37f4cb486c3704dca5842480e1ad0a20c5067c0d28a754c27fd8d58034861577", 
+            "bloomfilter": "63bc725350e0a74835085a2c8476dc396968ba4e48ba9463b4edeccea9e02fb8", 
+            "1534777203-1534777200-10464655041813923784.tsidx": "848a774dd99bcbdb3cb0c25c9424f44ecec3b4dcfc81cbd4f4f11bbf186f5f1e", 
+            "optimize.result": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", 
+            "Sources.data": "ef644fce49349e8a65106425ee5fdfb91b78b346b13cebf5c734f54b82256cc4", 
+            ".sizeManifest4.1": "0619da9a25a45fa6ba8b1419156c409b31b03f662e89335b3dc9fe41dda9df62", 
+            "bucket_info.csv": "5f8240fcdb241471c654bcf2b650d519373551f10523fe4f2f7db5748d52c421", 
+            "Strings.data": "a8aa9c203dc4d56cc2fc6d7bc7a514caadbdc571da5e9159915ffb02ec578103", 
+            ".rawSize": "f4ccd05b3271c386ee55d9876c7450012a3b361e5065c09dc22075e38b3cc35c", 
+            "rawdata/journal.lz4": "2813fcb5b4b602066a9fad772175ab28b759f65ce6336da301d2a19a05be9f9a", 
+            "rawdata/slicemin.dat": "1638067e68e673218d0afceecebd857646bb5de7ef763d664948aa60ddadd9c6", 
+            "SourceTypes.data": "f5ff58f4458606efe47cc3e5ce170f7ecb75b78dc13b5dfd759eecfccabf6d81", 
+            "Hosts.data": "075b50ed0ffd60673e41f3cb119c32daaecbb9dbc30ee2b3e403f5540484e7b3"
+          }, 
+          "exporttool": {
+            "stderr_bytes": 64, 
+            "stdout_bytes": 0, 
+            "csv_sha256": "f6027336bab3f2068179fe6fc286bea16f26523c32fe1237f29eba9bd2c53b06", 
+            "exit_code": 0
+          }, 
+          "bucket": "db_1534777203_1534777200_0"
+        }
+      ], 
+      "effective_settings": [
+        "datatype = metric", 
+        "journalCompression = lz4", 
+        "quarantineFutureSecs = 2000000000", 
+        "quarantinePastSecs = 2000000000"
+      ], 
+      "post_roll_journal_size_changes": [], 
+      "native_searches": [
+        {
+          "status": "OK", 
+          "query": "| mstats count(_value) AS n sum(_value) AS total min(_value) AS minimum max(_value) AS maximum WHERE index=metrics_default metric_name=* BY metric_name,rack,host span=1s", 
+          "rows": 4, 
+          "sha256": "c9de840d1a0fd18c37ad88b0c0ad7764db1913a76a340a40fe81d8afce2fa943"
+        }, 
+        {
+          "status": "UNAVAILABLE", 
+          "query": "| mpreview index=metrics_default target_per_timeseries=1000", 
+          "message": "{\"messages\":[{\"type\":\"UNKNOWN_-1183928616\",\"text\":\"Missing or malformed messages.conf stanza for SEARCHFACTORY:UNKNOWN_OP__mpreview\",\"help\":\"\"}]}", 
+          "http_status": 400
+        }
+      ]
+    }
+  }
+}

@@ -18,6 +18,7 @@ import zstandard
 
 from .wire import uvarint, signed32, event_components, exact_time
 from .zstd_integrity import is_zstd_magic
+from .lz4_integrity import MAGIC as LZ4_MAGIC
 from .source_identity import SourceIdentityError,normalize_sha256,require_sha256
 
 PIN = "d2885c63b36f115189f810eb0f43a888cc73c967"
@@ -46,10 +47,10 @@ def validate_index_type(index_type):
 def resolve(path):
     path = Path(path).resolve(strict=True)
     if path.is_dir():
-        found = [p for name in ("journal", "journal.gz", "journal.zst")
+        found = [p for name in ("journal", "journal.gz", "journal.zst", "journal.lz4")
                  if (p := path / "rawdata" / name).is_file()]
         if len(found) != 1:
-            raise JournalError("bucket must contain exactly one rawdata/journal[.gz|.zst]")
+            raise JournalError("bucket must contain exactly one rawdata/journal[.gz|.zst|.lz4]")
         path = found[0].resolve(strict=True)
     if not path.is_file():
         raise JournalError("source must be a regular local file")
@@ -109,6 +110,11 @@ def open_source(path,*,max_decompressed_bytes=None,expected_sha256=None):
             try:preflight(file,max_output_bytes=max_decompressed_bytes)
             except FrameIntegrityError as error:raise JournalError('zstd frame-integrity preflight failed: '+str(error)) from error
             file.seek(0)
+        if magic==LZ4_MAGIC:
+            from .lz4_integrity import preflight,FrameIntegrityError
+            try:preflight(file,max_output_bytes=max_decompressed_bytes)
+            except FrameIntegrityError as error:raise JournalError('lz4 frame-integrity preflight failed: '+str(error)) from error
+            file.seek(0)
         _check_source_identity(file,path,stamp)
         reader = HashReader(file)
         with io.BufferedReader(reader) as buffered:
@@ -119,6 +125,10 @@ def open_source(path,*,max_decompressed_bytes=None,expected_sha256=None):
             elif is_zstd_magic(magic):
                 stream = zstandard.ZstdDecompressor(max_window_size=32 * 1024 * 1024).stream_reader(buffered, read_across_frames=True,closefd=False)
                 compression = "zstd"
+            elif magic==LZ4_MAGIC:
+                from lz4.frame import LZ4FrameFile
+                stream = LZ4FrameFile(buffered, mode='rb')
+                compression = 'lz4'
             else:
                 stream, compression = buffered, "none"
             try:
@@ -453,11 +463,11 @@ def events(path, *, experimental=False, index=None, bucket_id=None, object_uri=N
             if _observer is not None:_observer.finish(decoder, context, sha)
             if stats is not None:
                 stats.update(source_bytes=reader.count,
-                             source_bytes_read=reader.count * (3 if compression == "zstd" else 2),
-                             total_source_bytes_read=reader.count * (3 if compression == "zstd" else 2) + stats.get("sidecar_bytes_read", 0),
+                             source_bytes_read=reader.count * (3 if compression in ("zstd","lz4") else 2),
+                             total_source_bytes_read=reader.count * (3 if compression in ("zstd","lz4") else 2) + stats.get("sidecar_bytes_read", 0),
                              decompressed_bytes=decoder.reader.pos,
                              source_sha256=sha, compression=compression)
-    except SourceIdentityError:raise
+    except (SourceIdentityError,ModuleNotFoundError):raise
     except Exception as e:
         raise JournalError(f"{path.name}: record {ordinal}: {e}") from e
 
@@ -472,7 +482,7 @@ def inspect(path, *, index_type="unknown"):
         file.seek(0)
         magic = file.read(4)
     return {"source_sha256": sha, "bytes": size,
-            "compression": "gzip" if magic.startswith(b"\x1f\x8b") else "zstd" if magic == b"\x28\xb5\x2f\xfd" else "none",
+            "compression": "gzip" if magic.startswith(b"\x1f\x8b") else "zstd" if magic == b"\x28\xb5\x2f\xfd" else "lz4" if magic==LZ4_MAGIC else "none",
             "journal_compatibility": "unverified", "indexed_search": False,
             "declared_index_type": index_type, "metric_point_extraction": False,
             "metric_point_extraction_scope": "event_adapter",

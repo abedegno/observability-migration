@@ -146,3 +146,9 @@ Selected field order/types/bytes and original bulk snapshot provenance remain
 unchanged. Columns participate in source query identity; execution policy remains
 outside it. `None` retains the previous full-schema/default-policy contract.
 See [projected snapshot SQL](federation.md#explicit-projected-full-snapshot-sql).
+
+Standard-frame LZ4 uses the same event and retained-metric contracts. The source
+SHA hashes the original compressed file; record offsets address the decompressed
+journal. Event scan stats and `buckets inspect` report `compression=lz4`; retained
+metric rows report `source_compression=lz4`. Complete codec preflight does not
+replace successful journal exhaustion or original source stability checks.

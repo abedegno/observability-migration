@@ -1,0 +1,7 @@
+datatype = event
+journalCompression = lz4
+metric.stubOutRawdataJournal = true
+metric.timestampResolution = s
+quarantineFutureSecs = 2000000000
+quarantinePastSecs = 2000000000
+tsidxWritingLevel = 3

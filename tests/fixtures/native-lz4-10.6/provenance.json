@@ -1,0 +1,224 @@
+{
+  "producer": {
+    "VERSION": "10.6.0.5",
+    "BUILD": "86587d4e3b27",
+    "PRODUCT": "splunk",
+    "PLATFORM": "Linux-x86_64"
+  },
+  "indexes": {
+    "matrix_events": {
+      "datatype": "event",
+      "buckets": [
+        {
+          "bucket": "db_1534777202_1534777200_0",
+          "files": {
+            "bloomfilter": "489482e5cdd6c75eeca573f4f478c070954af470dce05bb35c001fce165e978f",
+            "1534777202-1534777200-8578861672398838807.tsidx": "ae69010581dda6d1e5a3b6de95f7cf684dc8e1e83e62abca68d7c13d4cf0cfb9",
+            "bucket_info.csv": "13605aacefa18d1c127b80fc5433ece05ac45e94874befb116b4415d7ec5c86f",
+            "Sources.data": "8fc2e46c2463762f82a0bf1025eae6c0709a0eb04ae0992fdc66a537d9ca8d40",
+            "Strings.data": "81ec50097597742cc9ea94d77dfca7978c7ebb76e50c1ccc4d7f807041c3537d",
+            "Hosts.data": "65e2a70f90a24bf58d42aaf9c98eec1319426fc71694d2f8e021d31f05f7ca23",
+            "SourceTypes.data": "ea6cb1d8286b509dc1fb719c0effd5c04bc0b011b1e1bc1f0475935049a4d406",
+            ".rawSize": "017242aed0751adb88388d165183d00ebec8345e029638bf0d0688afdbf91deb",
+            "optimize.result": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            ".sizeManifest4.1": "0619da9a25a45fa6ba8b1419156c409b31b03f662e89335b3dc9fe41dda9df62",
+            "rawdata/slicemin.dat": "b38753385d7479ab4e0c2225cef143bdd5bf2f419ef72ae9f7559641f29f0beb",
+            "rawdata/journal.lz4": "bf6d8b2d1936a3498f41605d64e8bae5df4b3a2b2909da6fe87de3bc4293b7d3",
+            "rawdata/slicesv2.dat": "94166353a9c7504bd04bf0e72a1e2d89d3f0e6c5c4a9dec76094f599220ad537"
+          },
+          "exporttool": {
+            "exit_code": 0,
+            "stdout_bytes": 0,
+            "stderr_bytes": 64,
+            "csv_sha256": "9667f46493ed9776b0f8243cf83b6f4b2d9c4fddf93dd001a941cadebf78e5b2"
+          }
+        }
+      ],
+      "effective_settings": [
+        "datatype = event",
+        "journalCompression = lz4",
+        "metric.stubOutRawdataJournal = true",
+        "metric.timestampResolution = s",
+        "quarantineFutureSecs = 2000000000",
+        "quarantinePastSecs = 2000000000",
+        "tsidxWritingLevel = 3"
+      ],
+      "native_searches": [
+        {
+          "query": "search index=matrix_events | eval oracle_seconds=printf(\"%.0f\",floor(_time)) | fields _raw _time _subsecond _indextime host source sourcetype _bkt _cd oracle_seconds",
+          "status": "OK",
+          "rows": 4,
+          "sha256": "6c52e830ac1ddc55964601d92659a4bbdb359f729c2906b3d67c7df382da5451"
+        }
+      ],
+      "post_roll_journal_size_changes": []
+    },
+    "metrics_default": {
+      "datatype": "metric",
+      "buckets": [
+        {
+          "bucket": "db_1534777203_1534777200_0",
+          "files": {
+            "bloomfilter": "0ee34a7ab8f0311a0e0dd66a2231df3a891dcc0ae12021038d183364a403c4d3",
+            "bucket_info.csv": "13605aacefa18d1c127b80fc5433ece05ac45e94874befb116b4415d7ec5c86f",
+            "1534777203-1534777200-8578457803739073983.tsidx": "0188529718641d237e2d74a95ebc4ab09106fc72d53804c880615ea1c30cf3b4",
+            "Sources.data": "ec512330e0cb9e2d00c016842ec82b46d0569808716393469b49633933668f8e",
+            "Strings.data": "5c859f5c11b6435cac974b54a4e067e2630703f92c41b76fd72cd8e169ce7b24",
+            "Hosts.data": "7e4defc8f91727193bb7bdb99f03f7fa417cbe41fcc43b294ca4568e649b3589",
+            "SourceTypes.data": "a15a6d9cb4e78e8bf200672ce9a4031bae4a8cb12390a690d47ecd60e90e7ee0",
+            ".rawSize": "f4ccd05b3271c386ee55d9876c7450012a3b361e5065c09dc22075e38b3cc35c",
+            "optimize.result": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            ".sizeManifest4.1": "0619da9a25a45fa6ba8b1419156c409b31b03f662e89335b3dc9fe41dda9df62",
+            "rawdata/slicemin.dat": "03d0e3770d9df16a1b4b3675dcb57ff4ec3ccae4d20037169ecc147892977705",
+            "rawdata/journal.lz4": "dbab2913608cdd7e13ca92faab2670157c19bda1b9c5fdbfb39a8e757f2707bf",
+            "rawdata/slicesv2.dat": "69d8bb1cc085549865e7c8f13655d4d94318932202639dffa96a764d62157bf8"
+          },
+          "exporttool": {
+            "exit_code": 3,
+            "stdout_bytes": 0,
+            "stderr_bytes": 116,
+            "csv_sha256": null
+          }
+        }
+      ],
+      "effective_settings": [
+        "datatype = metric",
+        "journalCompression = lz4",
+        "metric.stubOutRawdataJournal = true",
+        "metric.timestampResolution = s",
+        "quarantineFutureSecs = 2000000000",
+        "quarantinePastSecs = 2000000000",
+        "tsidxWritingLevel = 3"
+      ],
+      "native_searches": [
+        {
+          "query": "| mstats count(_value) AS n sum(_value) AS total min(_value) AS minimum max(_value) AS maximum WHERE index=metrics_default metric_name=* BY metric_name,rack,host span=1s",
+          "status": "OK",
+          "rows": 4,
+          "sha256": "2875ce801f6a16082a48d4171187886e24e6e33a1d09f037ccf0feeef8f4ab96"
+        },
+        {
+          "query": "| mpreview index=metrics_default target_per_timeseries=1000",
+          "status": "OK",
+          "rows": 5,
+          "sha256": "d8d7868daff880279c3c8bc6d8564c0582c3a93158cd15fc0cb38f953fed2f4d"
+        }
+      ],
+      "post_roll_journal_size_changes": []
+    },
+    "metrics_retained": {
+      "datatype": "metric",
+      "buckets": [
+        {
+          "bucket": "db_1534777203_1534777200_0",
+          "files": {
+            "bloomfilter": "0ee34a7ab8f0311a0e0dd66a2231df3a891dcc0ae12021038d183364a403c4d3",
+            "bucket_info.csv": "13605aacefa18d1c127b80fc5433ece05ac45e94874befb116b4415d7ec5c86f",
+            "Sources.data": "ec512330e0cb9e2d00c016842ec82b46d0569808716393469b49633933668f8e",
+            "Strings.data": "5c859f5c11b6435cac974b54a4e067e2630703f92c41b76fd72cd8e169ce7b24",
+            "Hosts.data": "7e4defc8f91727193bb7bdb99f03f7fa417cbe41fcc43b294ca4568e649b3589",
+            "1534777203-1534777200-8578817666163918748.tsidx": "0188529718641d237e2d74a95ebc4ab09106fc72d53804c880615ea1c30cf3b4",
+            "SourceTypes.data": "a15a6d9cb4e78e8bf200672ce9a4031bae4a8cb12390a690d47ecd60e90e7ee0",
+            ".rawSize": "f4ccd05b3271c386ee55d9876c7450012a3b361e5065c09dc22075e38b3cc35c",
+            "optimize.result": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            ".sizeManifest4.1": "0619da9a25a45fa6ba8b1419156c409b31b03f662e89335b3dc9fe41dda9df62",
+            "rawdata/slicemin.dat": "01bd8861acf2e00acc88e6fe22b77bc8f67e1f94dcdce3e0dc5d1b69af0cc09e",
+            "rawdata/journal.lz4": "fa53a062a38ceffb681c7b0b8edcf49927157b5abd81c7a308d509a995b48cec",
+            "rawdata/slicesv2.dat": "9bd320d286f6813570ddd535b3d3723ad995f895ad7c69fc6dd7696d6fbb7aa6"
+          },
+          "exporttool": {
+            "exit_code": 3,
+            "stdout_bytes": 0,
+            "stderr_bytes": 116,
+            "csv_sha256": null
+          }
+        }
+      ],
+      "effective_settings": [
+        "datatype = metric",
+        "journalCompression = lz4",
+        "metric.stubOutRawdataJournal = false",
+        "metric.timestampResolution = s",
+        "quarantineFutureSecs = 2000000000",
+        "quarantinePastSecs = 2000000000",
+        "tsidxWritingLevel = 3"
+      ],
+      "native_searches": [
+        {
+          "query": "| mstats count(_value) AS n sum(_value) AS total min(_value) AS minimum max(_value) AS maximum WHERE index=metrics_retained metric_name=* BY metric_name,rack,host span=1s",
+          "status": "OK",
+          "rows": 4,
+          "sha256": "2875ce801f6a16082a48d4171187886e24e6e33a1d09f037ccf0feeef8f4ab96"
+        },
+        {
+          "query": "| mpreview index=metrics_retained target_per_timeseries=1000",
+          "status": "OK",
+          "rows": 5,
+          "sha256": "d8d7868daff880279c3c8bc6d8564c0582c3a93158cd15fc0cb38f953fed2f4d"
+        }
+      ],
+      "post_roll_journal_size_changes": []
+    },
+    "metrics_multi": {
+      "datatype": "metric",
+      "buckets": [
+        {
+          "bucket": "db_1534777204_1534777204_0",
+          "files": {
+            "bloomfilter": "c086d453572bf7b5e231d482d3e30974a2315067f41de31d4f6c551f69e4b3bd",
+            "bucket_info.csv": "13605aacefa18d1c127b80fc5433ece05ac45e94874befb116b4415d7ec5c86f",
+            "Sources.data": "4902c7c532c603b1d3360e1b7bda56d78a5d591c0a7f84736bed49409d68e220",
+            "Strings.data": "df6167d74bf030ed2da68b6ab1f06830db9aaf12152146cc0994f53c334857ee",
+            "Hosts.data": "97ce24bea2b1b65179e2b7e1ce99a00157517c7f8e0d8c93b5b9f4c7330efa1c",
+            "1534777204-1534777204-8578457704954816833.tsidx": "ac96c03235814462fe631c9eb147056d36130dd4aad89f5a748cfca5dd183eac",
+            "SourceTypes.data": "ff3e6611657a9a251a4ffa01a8ea3aeda924dfe1808bec585a06e06ab5b819c4",
+            ".rawSize": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+            "optimize.result": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            ".sizeManifest4.1": "0619da9a25a45fa6ba8b1419156c409b31b03f662e89335b3dc9fe41dda9df62",
+            "rawdata/slicemin.dat": "3bd55d5d9f45f63992768b3271e1e42391a502a662ae11b7eea4a69d81b091fa",
+            "rawdata/journal.lz4": "892ca0686a45c2ce868826eaba62a17347668f14837c60989ebea94508e9074f",
+            "rawdata/slicesv2.dat": "2539df4ef5ace1aae0674433ac092550138191fb4a30b587fb3bf924b74bd881"
+          },
+          "exporttool": {
+            "exit_code": 3,
+            "stdout_bytes": 0,
+            "stderr_bytes": 116,
+            "csv_sha256": null
+          }
+        }
+      ],
+      "effective_settings": [
+        "datatype = metric",
+        "journalCompression = lz4",
+        "metric.stubOutRawdataJournal = false",
+        "metric.timestampResolution = s",
+        "quarantineFutureSecs = 2000000000",
+        "quarantinePastSecs = 2000000000",
+        "tsidxWritingLevel = 3"
+      ],
+      "native_searches": [
+        {
+          "query": "| mstats count(_value) AS n sum(_value) AS total min(_value) AS minimum max(_value) AS maximum WHERE index=metrics_multi metric_name=* BY metric_name,rack,host span=1s",
+          "status": "OK",
+          "rows": 2,
+          "sha256": "d70b5d10cf22071c7a5a9be95785999a168ef6782f6576b1648d69821d6c8ce3"
+        },
+        {
+          "query": "| mpreview index=metrics_multi target_per_timeseries=1000",
+          "status": "OK",
+          "rows": 1,
+          "sha256": "27710c4e168a35d48c09042c0c369f352a4e501ec4d8a8d0d27fc6718b62fcc2"
+        }
+      ],
+      "post_roll_journal_size_changes": []
+    }
+  },
+  "input_event_count": 4,
+  "single_metric_inputs_per_index": 5,
+  "license_group": "Free",
+  "bulk_points_per_single_index": 0,
+  "authorization": "controlled nonprivate lab data",
+  "license": "CC0-1.0",
+  "binary_origin": "native ingestion and hot-to-warm roll; no fabricated bucket bytes",
+  "offline_capture": "daemon stopped before final copies"
+}

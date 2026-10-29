@@ -3,3 +3,4 @@ pip==26.2.2
 setuptools==84.2.1
 pyarrow==26.0.0
 zstandard==0.25.0
+lz4==4.4.5

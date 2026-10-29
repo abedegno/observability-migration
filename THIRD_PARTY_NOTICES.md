@@ -21,7 +21,7 @@ the original decoder source.
 
 ## Dependencies and test fixtures
 
-PyArrow, Zstandard, optional Python DataFusion and Boto3/botocore are separately
+PyArrow, Zstandard, Python LZ4 (BSD-3-Clause), optional Python DataFusion and Boto3/botocore are separately
 installed and retain their distribution notices. The Rust adapter uses its pinned
 Cargo dependency graph; no compiled dependency or vendor software is bundled.
 

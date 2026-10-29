@@ -1,0 +1,7 @@
+datatype = metric
+journalCompression = lz4
+metric.stubOutRawdataJournal = false
+metric.timestampResolution = s
+quarantineFutureSecs = 2000000000
+quarantinePastSecs = 2000000000
+tsidxWritingLevel = 3

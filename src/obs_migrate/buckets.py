@@ -213,7 +213,7 @@ def inventory(root, include_disabled=False):
         if not bucket.is_dir():
             continue
         disabled = bucket.name.startswith("DISABLED-")
-        journals = [p for name in ("journal", "journal.gz", "journal.zst")
+        journals = [p for name in ("journal", "journal.gz", "journal.zst", "journal.lz4")
                     if (p := bucket / "rawdata" / name).is_file()]
         listed = bucket.name in names if names is not None else None
         if not journals or (not include_disabled and (disabled or listed is False)):
