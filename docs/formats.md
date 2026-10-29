@@ -52,3 +52,24 @@ refusal; they do not certify another native producer profile. Legacy/skippable L
 frames and native LZ4 SmartStore/DDSS packaging are not qualified. A valid frame
 without content checksums cannot authenticate its payload; use an independently
 trusted expected source SHA where authenticity is required.
+
+## Immutable SmartStore deletion bases
+
+Acquired event buckets can apply complete receipt-bound CSV deletion masks to the
+observed all-zero, one-bit TSIDX8 flags0 and TSIDX9 flags0 bases. Original index
+bytes remain unchanged. The TSIDX9 control uses native Splunk 10.6.0.5 writing
+level4 with Zstd: fourteen stored events, three duplicate events deleted, eleven
+selected events, and native eviction/restart/search rehydration. Both event
+backends and Arrow/Parquet retain original bytes, stored times and metadata.
+
+Only these finite base profiles are admitted for this overlay. TSIDX9 flags19/27
+support in the local physical reader does not qualify them as SmartStore deletion
+bases. Complete journal/mask/address reconciliation and acquisition identity checks
+remain mandatory, including empty selections. Ordinary local undeleted reads still
+require the native bitmap to agree with the masks; a remote zero base cannot bypass
+that check. Unused bits inside the original delete array must also be zero.
+
+This extends experimental physical extraction only. It does not establish native
+search visibility, distributed ownership, concurrent upload semantics, live atomic
+snapshots or DDSS packaging. The genuine regression control and native references
+are in `tests/fixtures/smartstore-tsidx9-10.6`.

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Accept the observed immutable TSIDX9 flags0 SmartStore deletion base after
+  complete receipt-bound CSV mask and journal reconciliation. Retain original
+  index bytes and strict local bitmap agreement; add genuine native deletion,
+  rehydration and lossless Arrow/Parquet regression controls.
+
 ## 1.1.0rc3 — 2026-10-29
 
 - Read genuine standard-frame LZ4 event/retained-metric journals through the

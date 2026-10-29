@@ -44,7 +44,7 @@ def validate(snapshot):
 
 
 def validate_smartstore_delta(snapshot, expected_masks):
-    """Observed immutable TSIDX8/flags0 zero base plus receipt-bound CSV deltas.
+    """Observed immutable TSIDX8/9 flags0 zero bases plus receipt-bound CSV deltas.
 
     Unlike local native agreement, this explicitly does not equate the original
     base bits to final deletion state. Never rewrite those bytes. Complete mask
@@ -58,11 +58,13 @@ def validate_smartstore_delta(snapshot, expected_masks):
         if not actual or actual!=expected_masks:
             raise ValueError('SmartStore delta masks differ from receipt-bound object evidence')
         if snapshot._mask_selectable is None:raise ValueError('SmartStore delta requires complete mask selection state')
-        sources=[];total=0
+        sources=[];total=0;profiles=set()
         for name,index in snapshot._sources.items():
             index._check();reader=index.reader;section=reader.sections['delete']
-            if reader.span(0,8)!=b'_TSIDX8\0' or reader.flags!=0 or section['bits_per_value']!=1:
+            magic=reader.span(0,8)
+            if (magic,reader.flags) not in ((b'_TSIDX8\0',0),(b'_TSIDX9\0',0)) or section['bits_per_value']!=1:
                 raise ValueError('unobserved immutable SmartStore base index profile')
+            profiles.add(magic[1:-1].decode().lower())
             count=reader.nvalues;logical=(count+7)//8
             if section['bytes']<logical:raise ValueError('SmartStore base delete span is too short')
             wire=reader.span(section['offset'],section['bytes'])
@@ -79,6 +81,6 @@ def validate_smartstore_delta(snapshot, expected_masks):
             'sources':sources,'physical_values_compared':total,'native_base_deleted_values':0,
             'journal_mask_deleted_values':deleted,'native_base_equals_final_mask':deleted==0,
             'receipt_bound_masks':actual,
-            'scope':'all_zero_original_tsidx8_flags0_base_and_fully_reconciled_csv_delta;not_native_search_visibility',
+            'scope':'all_zero_original_'+'_or_'.join(sorted(profiles))+'_flags0_base_and_fully_reconciled_csv_delta;not_native_search_visibility',
             'indexed_search_supported':False,'search_visibility':'UNVERIFIED'}
     finally:snapshot._lock.release()

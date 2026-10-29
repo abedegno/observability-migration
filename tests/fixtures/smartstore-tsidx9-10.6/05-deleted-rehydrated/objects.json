@@ -1,0 +1,128 @@
+[
+  {
+    "key": "controlled/smart_events_zstd/db/fe/63/0~A9827D53-2A2D-47CF-B892-5C009A772568/guidSplunk-A9827D53-2A2D-47CF-B892-5C009A772568/.rawSize",
+    "size": 4,
+    "etag": "\"31cd01b6498b283acb8f4bc5b5865da4\"",
+    "file": "objects/0000.bin",
+    "sha256": "a8a53b187eafce20581c78ddb75b73dd5ae80b7501ddb0c83f23a589ee2a0a85",
+    "content_type": "application/octet-stream",
+    "last_modified": "Thu, 29 Oct 2026 14:01:28 GMT"
+  },
+  {
+    "key": "controlled/smart_events_zstd/db/fe/63/0~A9827D53-2A2D-47CF-B892-5C009A772568/guidSplunk-A9827D53-2A2D-47CF-B892-5C009A772568/.sizeManifest4.1",
+    "size": 5,
+    "etag": "\"9081d2e0daa8f21191bf58b26102c144\"",
+    "file": "objects/0001.bin",
+    "sha256": "0619da9a25a45fa6ba8b1419156c409b31b03f662e89335b3dc9fe41dda9df62",
+    "content_type": "application/octet-stream",
+    "last_modified": "Thu, 29 Oct 2026 14:01:28 GMT"
+  },
+  {
+    "key": "controlled/smart_events_zstd/db/fe/63/0~A9827D53-2A2D-47CF-B892-5C009A772568/guidSplunk-A9827D53-2A2D-47CF-B892-5C009A772568/1534777211-1534777200-2128509470337841383.tsidx",
+    "size": 2464,
+    "etag": "\"388c771e4b4217757c9b35fea20f4168\"",
+    "file": "objects/0002.bin",
+    "sha256": "459347da6af0cfd83a9329c9a98180ef5e0ade0f6ed679542f05cc63190f9c23",
+    "content_type": "application/octet-stream",
+    "last_modified": "Thu, 29 Oct 2026 14:01:28 GMT"
+  },
+  {
+    "key": "controlled/smart_events_zstd/db/fe/63/0~A9827D53-2A2D-47CF-B892-5C009A772568/guidSplunk-A9827D53-2A2D-47CF-B892-5C009A772568/Hosts.data",
+    "size": 104,
+    "etag": "\"b9597aaf0a5a42d338d1c47f461d25ab\"",
+    "file": "objects/0003.bin",
+    "sha256": "1ca0971e6fb9f8ca2a639ffd00b6d601add0f86787f678f0a66c699e4af8e843",
+    "content_type": "application/octet-stream",
+    "last_modified": "Thu, 29 Oct 2026 14:01:28 GMT"
+  },
+  {
+    "key": "controlled/smart_events_zstd/db/fe/63/0~A9827D53-2A2D-47CF-B892-5C009A772568/guidSplunk-A9827D53-2A2D-47CF-B892-5C009A772568/SourceTypes.data",
+    "size": 112,
+    "etag": "\"a00f392d2419d1927ea19d5a418dc377\"",
+    "file": "objects/0004.bin",
+    "sha256": "8c26288ea8d83f138e0cc2a7a3f41ae6c6d1c14c91b76fa130e04df137965f9a",
+    "content_type": "application/octet-stream",
+    "last_modified": "Thu, 29 Oct 2026 14:01:28 GMT"
+  },
+  {
+    "key": "controlled/smart_events_zstd/db/fe/63/0~A9827D53-2A2D-47CF-B892-5C009A772568/guidSplunk-A9827D53-2A2D-47CF-B892-5C009A772568/Sources.data",
+    "size": 118,
+    "etag": "\"b8ccd3b91e34f89522f06e70ee592362\"",
+    "file": "objects/0005.bin",
+    "sha256": "c1294a4f43c8a5b1da3490b665d177c9f6125af5507ebf9964210ba718b0ce60",
+    "content_type": "application/octet-stream",
+    "last_modified": "Thu, 29 Oct 2026 14:01:28 GMT"
+  },
+  {
+    "key": "controlled/smart_events_zstd/db/fe/63/0~A9827D53-2A2D-47CF-B892-5C009A772568/guidSplunk-A9827D53-2A2D-47CF-B892-5C009A772568/Strings.data",
+    "size": 302,
+    "etag": "\"03aa4ff6cf3ea015f8d2fede66f8ada8\"",
+    "file": "objects/0006.bin",
+    "sha256": "81ec50097597742cc9ea94d77dfca7978c7ebb76e50c1ccc4d7f807041c3537d",
+    "content_type": "application/octet-stream",
+    "last_modified": "Thu, 29 Oct 2026 14:01:28 GMT"
+  },
+  {
+    "key": "controlled/smart_events_zstd/db/fe/63/0~A9827D53-2A2D-47CF-B892-5C009A772568/guidSplunk-A9827D53-2A2D-47CF-B892-5C009A772568/bloomfilter",
+    "size": 155,
+    "etag": "\"71e1b9b3718268d9f5611130dc6834a4\"",
+    "file": "objects/0007.bin",
+    "sha256": "eecb4e2fed047c1eae7c70fe5f74132dc6209be08000b5a309c8bcf7b31c0569",
+    "content_type": "application/octet-stream",
+    "last_modified": "Thu, 29 Oct 2026 14:01:28 GMT"
+  },
+  {
+    "key": "controlled/smart_events_zstd/db/fe/63/0~A9827D53-2A2D-47CF-B892-5C009A772568/guidSplunk-A9827D53-2A2D-47CF-B892-5C009A772568/bucket_info.csv",
+    "size": 75,
+    "etag": "\"f2684a913cd546f446e53d9d77b1297b\"",
+    "file": "objects/0008.bin",
+    "sha256": "084b9b37de9147aa71f7b795a018c916daa01a111b5b142d316d9155d12d8831",
+    "content_type": "application/octet-stream",
+    "last_modified": "Thu, 29 Oct 2026 14:01:28 GMT"
+  },
+  {
+    "key": "controlled/smart_events_zstd/db/fe/63/0~A9827D53-2A2D-47CF-B892-5C009A772568/guidSplunk-A9827D53-2A2D-47CF-B892-5C009A772568/rawdata/deletes/2bbb98d59e34c75b51b9370e74959e36.csv.gz",
+    "size": 95,
+    "etag": "\"3d510eabde0f5ea7200b86c51e78cae4\"",
+    "file": "objects/0009.bin",
+    "sha256": "aac15c392069f5e874995a345dd133f00c927011352ae632a9ceb9558b5d1a39",
+    "content_type": "application/octet-stream",
+    "last_modified": "Thu, 29 Oct 2026 14:02:59 GMT"
+  },
+  {
+    "key": "controlled/smart_events_zstd/db/fe/63/0~A9827D53-2A2D-47CF-B892-5C009A772568/guidSplunk-A9827D53-2A2D-47CF-B892-5C009A772568/rawdata/journal.zst",
+    "size": 435,
+    "etag": "\"bd888103c5ed75bee58e8c40c78d6d56\"",
+    "file": "objects/0010.bin",
+    "sha256": "ab6a31c77994539fb6eec9fff61afe22612438e6582268c11be1b6fbf8062945",
+    "content_type": "application/octet-stream",
+    "last_modified": "Thu, 29 Oct 2026 14:01:28 GMT"
+  },
+  {
+    "key": "controlled/smart_events_zstd/db/fe/63/0~A9827D53-2A2D-47CF-B892-5C009A772568/guidSplunk-A9827D53-2A2D-47CF-B892-5C009A772568/rawdata/slicemin.dat",
+    "size": 8,
+    "etag": "\"02958355f96d09ebb30ea417b903b481\"",
+    "file": "objects/0011.bin",
+    "sha256": "0df82e74e171f8a644574bac71ba67454bb6bb4a776e924b6c5cff0621471a27",
+    "content_type": "application/octet-stream",
+    "last_modified": "Thu, 29 Oct 2026 14:01:28 GMT"
+  },
+  {
+    "key": "controlled/smart_events_zstd/db/fe/63/0~A9827D53-2A2D-47CF-B892-5C009A772568/guidSplunk-A9827D53-2A2D-47CF-B892-5C009A772568/rawdata/slicesv2.dat",
+    "size": 23,
+    "etag": "\"741b0e509d15ca8e3864103565f306bc\"",
+    "file": "objects/0012.bin",
+    "sha256": "573be5db1d3d0bc29bda4f45a793eabd6784516cc7b4bc07ab10b6f72f989ba2",
+    "content_type": "application/octet-stream",
+    "last_modified": "Thu, 29 Oct 2026 14:01:28 GMT"
+  },
+  {
+    "key": "controlled/smart_events_zstd/db/fe/63/0~A9827D53-2A2D-47CF-B892-5C009A772568/receipt.json",
+    "size": 1715,
+    "etag": "\"f3d4f5b5214b58822f7dce13be64846c\"",
+    "file": "objects/0013.bin",
+    "sha256": "a34383f8c015e9da095e6ae9bc4da01ca66da454a0a40b2111970a70b42d8047",
+    "content_type": "application/octet-stream",
+    "last_modified": "Thu, 29 Oct 2026 14:02:59 GMT"
+  }
+]
