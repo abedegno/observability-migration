@@ -99,6 +99,10 @@ The profile admits at most 1,000,000 value entries and column values per slice,
 uses incremental XOR cursors with an 8 MiB logical byte budget, and leaves other
 limits and full validation unchanged. Single-file `metrics tsidx-export` and
 `tsidx-verify` accept the same option. Default calls keep their previous budgets.
-Explicit profiles are limited to MSIDX4 bulk access; larger capture/selection/SQL
-workloads and legacy MSIDX1/2 profiles are not promoted. The byte budget is block
+The same explicit MSIDX4 policy is also available for the separately qualified
+capture, direct-selection and bounded SQL operations described in the
+[data contract](data-format.md#explicit-larger-msidx4-bulk-resource-profile) and
+[federation guide](federation.md#explicit-larger-metric-captures). Supply it on each
+operation; it does not increase independent materialization or query budgets.
+Legacy MSIDX1/2 profiles are not promoted. The byte budget is block
 wire bytes plus a 1,024-byte allowance per cursor, not a process RSS limit.

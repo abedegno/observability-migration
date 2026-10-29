@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Add genuine historical SmartStore uploader-replacement snapshots, regression
+  coverage and guidance for selecting complete immutable acquisitions. Preserve
+  receipt/uploader provenance and source-bound verification even when journals
+  match; retain incomplete/stale-receipt and inventory-identity refusals.
+
+
 - Read the observed SmartStore failover copy with distinct origin/uploader GUIDs,
   including native deletion, eviction and rehydration controls. Preserve both
   identities and original events; retain full mask reconciliation, incomplete

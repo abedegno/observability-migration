@@ -15,7 +15,8 @@ python -m pip install -e '.[test]'
 python -m pytest -q
 ```
 
-Tests include genuine CC0 gzip/Zstd events and native metric samples, alongside
+Tests include genuine CC0 gzip/Zstd/LZ4 events, native metric samples and
+SmartStore acquisition histories, alongside
 ordinary compression/container and canonical-record tests. Never fabricate a
 proprietary binary format as positive compatibility evidence. New format support
 needs authorised original bytes, an independent native reference and explicit

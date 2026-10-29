@@ -84,20 +84,28 @@ The [offline access contract](docs/support-contract.md) defines the finite scope
 for a stable build. [Support and maintenance](SUPPORT.md) describes best-effort
 reporting, triage and release policy; optional federation remains experimental.
 
-### Candidate: 1.1.0rc3
+### Published prerelease: 1.1.0rc3
 
-The next coherent candidate adds standard-frame LZ4 event and retained-metric
-journals, explicit larger metric capture/selection/SQL profiles, and caller-selected
-columns for immutable-capture and whole-snapshot SQL preparation. Full physical
-validation remains mandatory, default limits stay unchanged, and prepared SQL
-sessions can reuse the selected scalar columns. Full-schema materialization can
-still exceed the input budget. These are physical-data interfaces, not SPL or
-general indexed search.
+The [1.1.0rc3 prerelease](https://github.com/abedegno/observability-migration/releases/tag/v1.1.0rc3)
+was published on 29 October 2026 from frozen source
+`ebca8ac26d950acdacb11ccf6cd5e5bb374203e9`. It includes standard-frame LZ4
+journals, explicit larger metric capture/selection/SQL profiles and caller-selected
+columns for capture and snapshot SQL. Full physical validation remains mandatory;
+default limits and independent input/result budgets remain unchanged. The release's
+qualification and notes identify its exact assets, platforms and optional providers.
+Stable 1.0.0 remains the latest stable release.
 
-The candidate remains unpublished until exact-asset qualification and owner
-approval. Its qualification and release notes identify the actual frozen source,
-platforms, optional providers and tested native profiles. See [formats](docs/formats.md),
-[usage](docs/usage.md) and [federation](docs/federation.md).
+### Unreleased source changes
+
+Current `main` also covers observed SmartStore TSIDX9 deletion bases, distinct
+origin/uploader identities and reconciled replica-uploaded deletion masks. Genuine
+historical uploader-replacement fixtures and [capture-selection guidance](docs/jobs-and-s3.md#select-a-historical-smartstore-capture)
+cover separate immutable before/after acquisitions. These changes postdate the
+published rc3 source and are not part of its frozen assets, even though package
+metadata still reports `1.1.0rc3`. See [Unreleased](CHANGELOG.md#unreleased) and
+[supported formats](docs/formats.md) for their finite experimental scope. Source
+changes do not expand the published stable support contract or establish SPL,
+general indexed search, concurrent-copy election or complete DDSS compatibility.
 
 ### Published prerelease: 1.1.0rc2
 
