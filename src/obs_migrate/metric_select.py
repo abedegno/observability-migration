@@ -221,8 +221,10 @@ class _Source:
         yield from self._emit(self.plan(predicate),index,bucket_id)
 
 
-    def batches(self,predicate,*,index=None,bucket_id=None,max_rows=1024,max_bytes=8*1024*1024,limits=None):
-        yield from self.module.batches(self.records(predicate,index=index,bucket_id=bucket_id),max_rows,max_bytes)
+    def batches(self,predicate,*,index=None,bucket_id=None,max_rows=1024,max_bytes=8*1024*1024):
+        rows=self.records(predicate,index=index,bucket_id=bucket_id)
+        try:yield from self.module.batches(rows,max_rows,max_bytes)
+        finally:rows.close()
 
 
 @contextmanager

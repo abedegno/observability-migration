@@ -1,7 +1,6 @@
 """Opt-in direct selection uses existing genuine MSIDX bytes and finite policy."""
 from pathlib import Path
 import json
-import shutil
 import pytest
 from obs_migrate import bucket_select,metric_select,metric_limits,msidx
 from obs_migrate.stored_time import ticks,TimeBound,TimeRange
@@ -98,3 +97,33 @@ def test_cli_direct_selection_resource_profile(tmp_path,capsys):
     assert json.loads(capsys.readouterr().out)['metric_resource_profile']==LARGE.describe()
     assert main(['metrics','bucket-select-verify',str(BUCKET),*common,'--against',str(out)])==0
     assert json.loads(capsys.readouterr().out)['metric_resource_profile']==LARGE.describe()
+
+
+@pytest.mark.parametrize('operation',['bucket','source'])
+def test_batching_stage_failure_releases_rows_while_traceback_is_retained(monkeypatch,operation):
+    seen=[];original_init=metric_select._Source.__init__
+    def observed(self,*args,**kwargs):original_init(self,*args,**kwargs);seen.append(self)
+    monkeypatch.setattr(metric_select._Source,'__init__',observed)
+    selected=bucket_select.Selection(BUCKET,metric_select.Predicate(),experimental=True,offline_snapshot=True,limits=LARGE)
+    def fail(row):raise MemoryError('controlled batching failure after real native row')
+    with metric_select.open_source(FILE,experimental=True,limits=LARGE) as source:
+        stream=selected.batches(max_rows=2) if operation=='bucket' else source.batches(metric_select.Predicate(),max_rows=2)
+        with monkeypatch.context() as patch:
+            patch.setattr(msidx._io,'json_bytes',fail)
+            with pytest.raises(MemoryError) as retained:next(stream)
+        assert retained.value.__traceback__ is not None
+        if operation=='bucket':
+            assert seen[-1].closed and seen[-1].reader.work_report()['cursor_bytes']==0
+            assert not selected._scan_lock.locked()
+            assert len(list(selected.records()))==1201
+        else:
+            assert source.reader.work_report()['cursor_bytes']==0
+            assert len(list(source.records(metric_select.Predicate())))==1201
+        assert retained.value.__traceback__ is not None
+
+
+@pytest.mark.parametrize('override',[object(),metric_limits.MetricLimits(cursor_bytes=1)])
+def test_open_source_batches_rejects_unapplied_budget_overrides(override):
+    with metric_select.open_source(FILE,experimental=True,limits=LARGE) as source:
+        with pytest.raises(TypeError,match='limits'):
+            source.batches(metric_select.Predicate(),limits=override)

@@ -74,7 +74,9 @@ class Selection:
         yield from self._scan(True)
 
     def batches(self,*,max_rows=1024,max_bytes=8*1024*1024):
-        yield from self.reader.batches(self.records(),max_rows,max_bytes)
+        rows=self.records()
+        try:yield from self.reader.batches(rows,max_rows,max_bytes)
+        finally:rows.close()
 
     def report(self):
         if not self.complete or self._scan_lock.locked():raise ValueError('bucket predicate result requires complete source exhaustion')
