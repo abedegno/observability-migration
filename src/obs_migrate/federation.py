@@ -166,12 +166,13 @@ class BucketSession:
             return self.inventory()[name]
         finally:self._lock.release()
 
-    def register_capture(self,name,capture,predicate=None,*,index=None,bucket_id=None):
+    def register_capture(self,name,capture,predicate=None,*,index=None,bucket_id=None,columns=None):
         """Register a lazy DatasetTable over an already validated immutable capture.
 
         Reuses native metadata and posting indexes. On first provider access,
         only explicit predicate candidates are encoded to bounded Parquet bytes;
-        subsequent SQL scans reuse those bytes. SQL filters remain residuals.
+        subsequent SQL scans reuse those bytes. Explicit columns restrict the
+        registered schema and decoding; SQL filters remain residuals.
         """
         from .capture import CapturedBucket
         from .capture_dataset import dataset
@@ -191,7 +192,7 @@ class BucketSession:
                     if session._bytes+session._capture_bytes+size>session.max_input_bytes:
                         raise ValueError('total capture dataset byte limit exceeded')
                     session._capture_bytes+=size
-            value,handler=dataset(selection,self.max_input_bytes,reserve)
+            value,handler=dataset(selection,self.max_input_bytes,reserve,columns=columns)
             self._context.register_dataset(name,value)
             report=selection.report()
             self._sources[name]={'selection':selection,'report':report,'arrow_bytes':0,
@@ -382,6 +383,9 @@ class BucketSession:
                    'provider':','.join(sorted({entry['provider'] for entry in self._sources.values()})),'sql_filter_pushdown':any('native' in entry and entry.get('sql_pushdown',True) for entry in self._sources.values())}
             captures={name:entry['capture'] for name,entry in sorted(self._sources.items()) if 'capture' in entry}
             if captures:query['captures']=captures
+            projected={name:list(entry['handler'].columns) for name,entry in sorted(self._sources.items())
+                       if 'handler' in entry and entry['handler'].columns is not None}
+            if projected:query['dataset_columns']=projected
             manifest={'sql_provenance_schema':1,'query':query,
                 'query_sha256':hashlib.sha256(metric_bucket._json(query)).hexdigest(),
                 'sources':{name:_copy(entry['report']) for name,entry in sorted(self._sources.items())},
@@ -394,7 +398,8 @@ class BucketSession:
             if captures:
                 manifest['capture_validation']=captures
                 manifest['capture_datasets']={name:{'materializations':entry['handler'].materializations,
-                    'arrow_bytes':entry['handler'].arrow_bytes} for name,entry in self._sources.items() if 'handler' in entry}
+                    'arrow_bytes':entry['handler'].arrow_bytes,
+                    **({'columns':list(entry['handler'].columns)} if entry['handler'].columns is not None else {})} for name,entry in self._sources.items() if 'handler' in entry}
             native={name:entry['native'].events() for name,entry in self._sources.items() if 'native' in entry}
             if native:manifest['native_scans']=native
             encoded=metric_bucket._json(manifest)

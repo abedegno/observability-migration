@@ -37,6 +37,10 @@ def test_projection_avoids_numeric_decode_except_predicate_dependencies(captured
     selection=captured.select(pred)
     expected=[{'point_ordinal':r['point_ordinal']} for r in selection.records()]
     assert list(selection.records(columns=['point_ordinal']))==expected
+    from obs_migrate.stored_time import ticks,TimeBound,TimeRange
+    bound=TimeBound.from_ticks(ticks(**row['indexed_time']))
+    timed=captured.select(metric_select.Predicate(time_range=TimeRange(bound,bound)))
+    assert list(timed.records(columns=['point_ordinal']))==[{'point_ordinal':r['point_ordinal']} for r in timed.records()]
     readers=[s.reader for s in captured._sources.values()];before=sum(r.work_report()['numeric_lookups'] for r in readers)
     value,_=dataset(captured.select(),32*1024**2,columns=['point_ordinal','host','indexed_time'])
     assert value.to_table(use_threads=False).num_rows==1201
@@ -90,3 +94,11 @@ def test_legacy_projection_preserves_full_record_fields(tmp_path,version):
         assert list(selected.records(columns=columns))==expected
         value,_=dataset(selected,32*1024**2,columns=columns)
         assert value.to_table(use_threads=False).to_pylist()==expected
+
+
+def test_dataset_cli_option_refuses_native_provider_before_open(capsys):
+    from obs_migrate.cli import main
+    status=main(['metrics','capture-sql','absent.zip','--capture-sha256','0'*64,'--experimental',
+                 '--provider','native','--dataset-column','point_ordinal','--sql','select count(*) from points','--out','absent.parquet'])
+    assert status==1
+    assert '--dataset-column requires --provider dataset' in capsys.readouterr().err

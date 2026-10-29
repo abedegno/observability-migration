@@ -99,3 +99,10 @@ without parallel workers. This local reader policy avoids the higher peak memory
 observed for wide metric rows; it changes neither global Arrow thread settings,
 canonical fields, source verification nor output schemas. It is not a hard RSS
 limit or a guarantee for arbitrary Parquet files and platforms.
+
+
+An explicitly projected immutable metric capture dataset preserves selected field
+bytes, nullable types, timestamp structs and row provenance, while omitting other
+fields from its registered schema. SQL provenance binds the requested columns;
+source capture/selection identities remain unchanged. The default remains the full
+canonical schema. See [DatasetTable columns](federation.md#explicit-capture-datasettable-columns).

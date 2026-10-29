@@ -89,6 +89,50 @@ The direct native provider can count or project bounded columns without encoding
 all canonical fields. The DatasetTable provider still materializes its explicit
 selection through bounded Parquet; a broad query can refuse the materialization
 budget even if its final result is only a count. Select a bounded source predicate
-or use a qualified native projection rather than increasing budgets implicitly.
+or register explicit dataset columns as below. A qualified native projection is
+another option. Budgets never increase implicitly.
 Both retain SQL residual filters, physical-data semantics and provenance. Ordinary
 file/bucket selection and snapshot SQL do not inherit this opt-in profile.
+
+
+### Explicit capture DatasetTable columns
+
+The portable DatasetTable bridge can expose a caller-selected canonical schema:
+
+```python
+session.register_capture("points", captured,
+    columns=["source_sha256", "point_ordinal", "host", "indexed_time"])
+result = session.sql("select count(*) as n from points")
+```
+
+`columns=None` retains all fields. An explicit value must be a nonempty list or
+tuple of unique canonical names; its order and exact field types are preserved.
+For count-only work, `columns=["point_ordinal"]` preserves physical cardinality.
+The registered table cannot reference omitted fields. Source predicates still
+validate their dependencies even when those fields are omitted. Full source
+preflight still occurs on every capture open.
+
+CLI equivalent (repeat the option for each field):
+
+```sh
+obsmigrate metrics capture-sql capture.zip --capture-sha256 "$CAPTURE_SHA256" \
+  --experimental --provider dataset --resource-profile large \
+  --dataset-column point_ordinal --sql 'select count(*) as n from points' \
+  --out count.parquet
+```
+
+`--dataset-column` refuses with the native provider. Registration columns are an
+explicit source schema, not automatic SQL projection or predicate pushdown.
+The first file access materializes all selected rows/columns to bounded in-memory
+Parquet. Cumulative Arrow bytes, encoded Parquet bytes, shared session input,
+result and engine budgets remain independent. A small SQL result does not bypass
+them. Repeated queries reuse the completed buffer; failure commits no partial
+buffer or input reservation.
+
+SQL query identity includes explicit dataset columns; result provenance records
+them in `query.dataset_columns` and `capture_datasets`. Capture/selection identity
+and original members stay unchanged. Projected `storage_json` retains the same
+logical first-row manifest and slice/query envelope as full canonical records.
+Keep the original capture: a projected table is a derived view, not a lossless
+replacement for the source archive. Direct library callers may also use
+`captured.select(...).records(columns=[...])`.

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add explicit canonical column selection for immutable capture DatasetTables,
+  library records and capture SQL; preserve full-schema defaults and byte limits.
+
 - Extend explicit bounded MSIDX4 resource profiles to immutable capture creation,
   reopening and capture SQL, preserving defaults, identities and source checks.
   Release incremental numeric cursors on preflight/scan completion and interruption.

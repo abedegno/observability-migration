@@ -262,3 +262,93 @@ def test_explicit_metric_capture_residuals_and_retained_interrupt_reuse(tmp_path
         session.max_result_bytes=256*1024**2
         assert session.sql('select count(*) as n from points').table.to_pylist()==[{'n':1201}]
         assert all(s.reader.work_report()['cursor_bytes']==0 for s in source._sources.values())
+
+
+@pytest.fixture
+def projected_capture(tmp_path):
+    from obs_migrate import capture,metric_limits
+    path=tmp_path/'projected.zip';root=next((ROOT.parent/'metric-xor-9').glob('db_*'))
+    receipt=capture.create(root,path,experimental=True,offline_snapshot=True,limits=metric_limits.LARGE_METRICS)
+    with capture.CapturedBucket(path,expected_sha256=receipt['capture_sha256'],experimental=True,limits=metric_limits.LARGE_METRICS) as source:
+        yield source
+
+
+def test_projected_dataset_sql_residuals_schema_identity_and_reuse(projected_capture):
+    source=projected_capture;selection=source.select();original=selection.sha256
+    columns=['point_ordinal','host','indexed_time','measurements','storage_json']
+    rows=list(selection.records());reference=datafusion.SessionContext()
+    reference.register_record_batches('points',[pa.Table.from_pylist(rows,schema=source.reader.SCHEMA).to_batches()])
+    session=BucketSession();session.register_capture('points',source,columns=columns)
+    for sql in ('select count(*) as n from points','select * from points order by point_ordinal',
+                'select host,indexed_time,measurements from points where point_ordinal%2=0 order by point_ordinal',
+                'select * from points where point_ordinal<0','select * from points limit 3'):
+        expected=reference.sql(sql.replace('select *','select '+','.join(columns))).to_arrow_table()
+        actual=session.sql(sql)
+        assert actual.table.to_pylist()==expected.to_pylist()
+        assert actual.table.schema.equals(expected.schema,check_metadata=False)
+        assert actual.manifest['query']['dataset_columns']=={'points':columns}
+        assert actual.manifest['capture_datasets']['points']['columns']==columns
+        assert actual.manifest['sources']['points']['query_sha256']==original
+    with pytest.raises(ValueError):session.sql('select dimensions from points')
+    assert session.sql('select count(*) as n from points').table.to_pylist()==[{'n':1201}]
+    default=BucketSession();default.register_capture('points',source)
+    sql='select count(*) as n from points';old=default.sql(sql);new=session.sql(sql)
+    assert 'dataset_columns' not in old.manifest['query']
+    assert old.manifest['query_sha256']!=new.manifest['query_sha256']
+    assert source.select().sha256==original
+
+
+def test_projected_dataset_shared_budget_failure_and_reuse(projected_capture):
+    source=projected_capture
+    probe=BucketSession();probe.register_capture('points',source,columns=['point_ordinal']);probe.sql('select count(*) from points')
+    handler=probe._sources['points']['handler'];charged=max(handler.arrow_bytes,len(handler.wire))
+    session=BucketSession(max_input_bytes=charged+1)
+    session.register_capture('points',source,columns=['point_ordinal']);session.register_capture('other',source,columns=['point_ordinal'])
+    assert session.sql('select count(*) as n from points').table.to_pylist()==[{'n':1201}]
+    with pytest.raises(ValueError,match='byte limit'):session.sql('select count(*) from other')
+    assert session._capture_bytes==charged
+    assert session._sources['other']['handler'].wire is None
+    assert session.sql('select count(*) as n from points').table.to_pylist()==[{'n':1201}]
+    tiny=BucketSession(max_input_bytes=1);tiny.register_capture('points',source,columns=['point_ordinal'])
+    with pytest.raises(ValueError,match='byte limit'):tiny.sql('select count(*) from points')
+    assert tiny._capture_bytes==0 and tiny.sql('select 1 as n').table.to_pylist()==[{'n':1}]
+
+
+def test_projected_dataset_retained_cancel_result_cap_and_source_failure(projected_capture,monkeypatch):
+    from datafusion.record_batch import RecordBatchStream
+    source=projected_capture;session=BucketSession();session.register_capture('points',source,columns=['point_ordinal','measurements'])
+    native=next(iter(source._sources.values()));original_emit=native._emit
+    def failed(*args,**kwargs):
+        rows=original_emit(*args,**kwargs)
+        try:
+            yield next(rows)
+            raise ValueError('controlled source read failure')
+        finally:rows.close()
+    with monkeypatch.context() as patch:
+        patch.setattr(native,'_emit',failed)
+        with pytest.raises(ValueError,match='controlled source read failure') as retained:session.sql('select count(*) from points')
+    assert retained.value.__traceback__ is not None and session._capture_bytes==0
+    original=RecordBatchStream.__next__
+    def interrupted(stream):
+        original(stream);raise KeyboardInterrupt('after genuine projected Dataset batch')
+    with monkeypatch.context() as patch:
+        patch.setattr(RecordBatchStream,'__next__',interrupted)
+        with pytest.raises(KeyboardInterrupt) as caught:session.sql('select * from points')
+    assert caught.value.__traceback__ is not None
+    session.max_result_bytes=1
+    with pytest.raises(ValueError,match='byte limit'):session.sql('select * from points')
+    session.max_result_bytes=256*1024**2
+    assert session.sql('select count(*) as n from points').table.to_pylist()==[{'n':1201}]
+    assert all(s.reader.work_report()['cursor_bytes']==0 for s in source._sources.values())
+
+
+def test_projected_dataset_cli_parquet_output(projected_capture,tmp_path,capsys):
+    from obs_migrate.cli import main
+    import pyarrow.parquet as pq
+    source=projected_capture;path=tmp_path/'cli.parquet'
+    # CapturedBucket retains a protected native member copy; pass original artifact.
+    args=['metrics','capture-sql',str(tmp_path/'projected.zip'),'--capture-sha256',source.sha256,'--experimental',
+          '--resource-profile','large','--dataset-column','point_ordinal','--sql','select count(*) as n from points','--out',str(path)]
+    assert main(args)==0
+    assert pq.read_table(path).to_pylist()==[{'n':1201}]
+    assert 'query_sha256' in capsys.readouterr().out
