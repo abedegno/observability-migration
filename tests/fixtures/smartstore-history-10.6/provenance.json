@@ -1,0 +1,103 @@
+{
+  "license": "CC0-1.0",
+  "authorization": "author-controlled disposable native lab;14controlled CC0 events only",
+  "producer": "splunk/splunk:10.6.0-rhel9@sha256:27338fe2834cf056546f2453e3d80c6eefeb363d8a35952e904efab93e509f63",
+  "producer_version": {
+    "VERSION": "10.6.0.5",
+    "BUILD": "86587d4e3b27",
+    "PRODUCT": "splunk",
+    "PLATFORM": "Linux-x86_64"
+  },
+  "store_image": "rustfs/rustfs:1.0.4@sha256:ed9210d6411d77ffceb70d94b964a3cb7d225983368bc25bebe01e995293dcc2",
+  "runtime_sha256": "ab77db506f2dea755718ec320b609640986d672bf87d61942b660d45aa055dc7",
+  "original_acquisition_id": "smartstore-source-outage-20261029/native-control-paused",
+  "native_origin_guid": "3416B6F7-0EFF-496F-BBC8-7EBA38C90969",
+  "first_uploader_guid": "66AF1274-6347-4708-8F54-C6B272F3D58C",
+  "recovered_uploader_guid": "3416B6F7-0EFF-496F-BBC8-7EBA38C90969",
+  "physical_events": 14,
+  "control": "native RF2/SF2 source-only storage outage, target upload, source recovery and replacement",
+  "quiescence": {
+    "00-source-blocked": "source storage disconnected and all source processes frozen; target native daemon stopped",
+    "01-source-recovered": "source and target native daemons stopped; manager stopped; RustFS serving read-only observations"
+  },
+  "scope": {
+    "historical_replacement_observed": true,
+    "concurrent_copies_qualified": false,
+    "transient_overlap_qualified": false,
+    "ownership": "UNVERIFIED",
+    "native_search_visibility": "UNVERIFIED",
+    "replacement_masks_qualified": false,
+    "indexed_search_supported": false,
+    "native_content_hash_algorithm_verified": false,
+    "s3_version_history_qualified": false,
+    "ddss_qualified": false
+  },
+  "original_archives": {
+    "peer-a": {
+      "sha256": "d7993c60f5999ce6070e0b81de653f326e6a5dad4b6311bd42913e1106c6f258",
+      "bytes": 10143
+    },
+    "peer-b": {
+      "sha256": "2606985ddd369099d762e45fc5e7044bec8aaebc00b20bed3e8ba24884575066",
+      "bytes": 17756
+    },
+    "manager": {
+      "sha256": "ec6e82b6f1ae99c041cbb635a65d8848fead81db622dc34f306613c15cadf9e4",
+      "bytes": 9636
+    }
+  },
+  "phases": [
+    {
+      "label": "00-source-blocked",
+      "objects": 12,
+      "inventory_sha256": "1855484365ea6f458dac5673c36e327eee66349a13e4deb1b67cc0315224d999",
+      "receipt_sha256": "1b3355b9fb84c63572cd77fa153372ab593d6c2656e6e7d2f1d831cd0c9cde76",
+      "native_uploader_guid": "66AF1274-6347-4708-8F54-C6B272F3D58C",
+      "native_csv_sha256": "89b9c95098bf93d89fd2d3a86fe11417725dd1ab2861b761e8ddaac5cee8e2a7"
+    },
+    {
+      "label": "01-source-recovered",
+      "objects": 13,
+      "inventory_sha256": "d3f7c85b98d94ebebf52e6c58e62172a9f217093ae8c9cb987e9c4df9f1ddcfa",
+      "receipt_sha256": "ba5dd2d03cb8ce16438a5ef39459c87a1cec7c645211ff7e1f05a8b8ece8f532",
+      "native_uploader_guid": "3416B6F7-0EFF-496F-BBC8-7EBA38C90969",
+      "native_csv_sha256": "89b9c95098bf93d89fd2d3a86fe11417725dd1ab2861b761e8ddaac5cee8e2a7"
+    }
+  ],
+  "original_file_mapping": {
+    "00-source-blocked/acquired/objects.json": "peer-b/uploader-fixture/00-source-blocked/objects.json",
+    "00-source-blocked/acquired/objects/0000.bin": "peer-b/uploader-fixture/00-source-blocked/objects/0000.bin",
+    "00-source-blocked/acquired/objects/0001.bin": "peer-b/uploader-fixture/00-source-blocked/objects/0001.bin",
+    "00-source-blocked/acquired/objects/0002.bin": "peer-b/uploader-fixture/00-source-blocked/objects/0002.bin",
+    "00-source-blocked/acquired/objects/0003.bin": "peer-b/uploader-fixture/00-source-blocked/objects/0003.bin",
+    "00-source-blocked/acquired/objects/0004.bin": "peer-b/uploader-fixture/00-source-blocked/objects/0004.bin",
+    "00-source-blocked/acquired/objects/0005.bin": "peer-b/uploader-fixture/00-source-blocked/objects/0005.bin",
+    "00-source-blocked/acquired/objects/0006.bin": "peer-b/uploader-fixture/00-source-blocked/objects/0006.bin",
+    "00-source-blocked/acquired/objects/0007.bin": "peer-b/uploader-fixture/00-source-blocked/objects/0007.bin",
+    "00-source-blocked/acquired/objects/0008.bin": "peer-b/uploader-fixture/00-source-blocked/objects/0008.bin",
+    "00-source-blocked/acquired/objects/0009.bin": "peer-b/uploader-fixture/00-source-blocked/objects/0009.bin",
+    "00-source-blocked/acquired/objects/0010.bin": "peer-b/uploader-fixture/00-source-blocked/objects/0010.bin",
+    "00-source-blocked/acquired/objects/0011.bin": "peer-b/uploader-fixture/00-source-blocked/objects/0011.bin",
+    "00-source-blocked/native-exports.json": "peer-b/uploader-fixture/00-source-blocked/native-exports.json",
+    "00-source-blocked/native.csv": "peer-b/uploader-fixture/00-source-blocked/db_1534777211_1534777200_0_3416B6F7-0EFF-496F-BBC8-7EBA38C90969.csv",
+    "01-source-recovered/acquired/objects.json": "peer-a/uploader-fixture/01-source-recovered/objects.json",
+    "01-source-recovered/acquired/objects/0000.bin": "peer-a/uploader-fixture/01-source-recovered/objects/0000.bin",
+    "01-source-recovered/acquired/objects/0001.bin": "peer-a/uploader-fixture/01-source-recovered/objects/0001.bin",
+    "01-source-recovered/acquired/objects/0002.bin": "peer-a/uploader-fixture/01-source-recovered/objects/0002.bin",
+    "01-source-recovered/acquired/objects/0003.bin": "peer-a/uploader-fixture/01-source-recovered/objects/0003.bin",
+    "01-source-recovered/acquired/objects/0004.bin": "peer-a/uploader-fixture/01-source-recovered/objects/0004.bin",
+    "01-source-recovered/acquired/objects/0005.bin": "peer-a/uploader-fixture/01-source-recovered/objects/0005.bin",
+    "01-source-recovered/acquired/objects/0006.bin": "peer-a/uploader-fixture/01-source-recovered/objects/0006.bin",
+    "01-source-recovered/acquired/objects/0007.bin": "peer-a/uploader-fixture/01-source-recovered/objects/0007.bin",
+    "01-source-recovered/acquired/objects/0008.bin": "peer-a/uploader-fixture/01-source-recovered/objects/0008.bin",
+    "01-source-recovered/acquired/objects/0009.bin": "peer-a/uploader-fixture/01-source-recovered/objects/0009.bin",
+    "01-source-recovered/acquired/objects/0010.bin": "peer-a/uploader-fixture/01-source-recovered/objects/0010.bin",
+    "01-source-recovered/acquired/objects/0011.bin": "peer-a/uploader-fixture/01-source-recovered/objects/0011.bin",
+    "01-source-recovered/acquired/objects/0012.bin": "peer-a/uploader-fixture/01-source-recovered/objects/0012.bin",
+    "01-source-recovered/native-exports.json": "peer-a/uploader-fixture/01-source-recovered/native-exports.json",
+    "01-source-recovered/native.csv": "peer-a/uploader-fixture/01-source-recovered/db_1534777211_1534777200_0_3416B6F7-0EFF-496F-BBC8-7EBA38C90969.csv",
+    "event-input.log": "peer-a/uploader-fixture/event-input.log",
+    "before-failure.native.jsonl": "peer-a/uploader-fixture/before-failure.native.jsonl",
+    "after-storage-recovery.native.jsonl": "peer-a/uploader-fixture/after-storage-recovery.native.jsonl"
+  }
+}

@@ -108,3 +108,49 @@ Acquired SmartStore job inputs use `kind: "smartstore"`, a local acquired root
 and exact native receipt selectors. Bind the complete acquired inventory and
 masks; a receipt hash alone does not identify later deletion state. Keep source
 objects and acquisition provenance. Unknown/incomplete layouts refuse.
+
+## Select a historical SmartStore capture
+
+Keep each completed acquisition in a separate new directory, including its
+`objects.json`, original native receipt and every listed payload. Record the
+inventory SHA256 in an independently trusted acquisition record. A later uploader
+can replace the receipt and payload namespace while retaining the same bucket ID.
+A bucket ID or journal hash alone therefore does not select a historical capture.
+
+First choose the acquired directory, then inspect it and copy the exact bucket ID
+from its report. Replace the paths, SHA256 and bucket ID below with that capture's
+values; keep derived output outside the acquired directory:
+
+```sh
+obsmigrate smartstore inspect /offline/history/before/acquired \
+  --offline-snapshot --expected-inventory-sha256 TRUSTED_INVENTORY_SHA256
+obsmigrate smartstore export /offline/history/before/acquired \
+  --offline-snapshot --expected-inventory-sha256 TRUSTED_INVENTORY_SHA256 \
+  --bucket-id EXACT_BUCKET_ID_FROM_REPORT --experimental --backend journal \
+  --format parquet --out /derived/before.parquet
+obsmigrate smartstore verify /offline/history/before/acquired \
+  --offline-snapshot --expected-inventory-sha256 TRUSTED_INVENTORY_SHA256 \
+  --bucket-id EXACT_BUCKET_ID_FROM_REPORT --experimental --backend journal \
+  --format parquet --against /derived/before.parquet
+```
+
+The library uses the same selection through
+`AcquiredObjects(path, offline_snapshot=True, expected_inventory_sha256=...)`
+and `event_bucket(exact_bucket_id, experimental=True, ...)`. To read the later
+capture, use its own directory and inventory hash. Verification remains bound to
+the chosen source; an export from another capture is not interchangeable merely
+because its journal bytes match. A hash calculated only from the current input
+detects changes relative to that input but does not independently authenticate it.
+
+Saving an old receipt alone cannot recover an earlier payload prefix removed from
+the store. Reusing that receipt with a later capture's payloads refuses. Preserve
+complete acquisitions before replacement and retain their provenance. Do not merge
+the two histories to simulate a native simultaneous-copy snapshot or silently
+ingest both as independent event sets; they can contain the same stored events.
+
+`tests/fixtures/smartstore-history-10.6` contains genuine before/after replacement
+captures and native references: fourteen events, identical journal bytes, different
+receipts and uploader/index metadata. Each original acquisition has one complete
+copy. This is offline physical access with caller-asserted quiescence; it does not
+elect an owner, establish native search visibility, qualify deletion masks across
+replacement, or establish simultaneous copies, S3 version history or DDSS packaging.

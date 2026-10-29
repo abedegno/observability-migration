@@ -111,3 +111,24 @@ bytes are not an origin signature. Receipt/inventory provenance remains
 caller-asserted, and ownership and native search visibility remain `UNVERIFIED`.
 This does not establish concurrent upload/generation election, arbitrary cluster
 search semantics, DDSS packaging or indexed search.
+
+## Historical SmartStore uploader replacement
+
+Genuine Splunk10.6 RF2/SF2 captures demonstrate replacement of a replica uploader's
+namespace and receipt by the original source's after storage recovery. Each
+quiescent acquisition has one complete copy for the same bucket ID. The two
+original Zstd journals are byte-identical and retain fourteen events; native
+TSIDX8 flags0 files, receipt hashes and some sidecars differ. Both event backends
+and Arrow/Parquet preserve the stored data while retaining capture-specific
+provenance and index links. A source-only `bucket_info.csv` adds index-time context
+and its diagnostic evidence without changing the stored event or index times.
+
+Select a history using its acquired directory and trusted inventory hash, then its
+exact bucket ID. Keep the entire original receipt/payload set; an old receipt is
+insufficient after its payload prefix disappears from the store. See
+[historical capture selection](jobs-and-s3.md#select-a-historical-smartstore-capture)
+and the literal fixtures in `tests/fixtures/smartstore-history-10.6`.
+
+This adds regression coverage for existing offline access. It does not qualify
+simultaneous-copy selection, transient overlap, ownership election, replacement
+masks, native content_hash semantics, indexed search, S3 version history or DDSS.

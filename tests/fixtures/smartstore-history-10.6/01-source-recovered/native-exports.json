@@ -1,0 +1,10 @@
+[
+  {
+    "exit_code": 0,
+    "stdout_base64": "",
+    "stderr_base64": "VXNpbmcgbG9nZ2luZyBjb25maWd1cmF0aW9uIGF0IC9vcHQvc3BsdW5rL2V0Yy9sb2ctY21kbGluZS5jZmcuCg==",
+    "bucket": "db_1534777211_1534777200_0_3416B6F7-0EFF-496F-BBC8-7EBA38C90969",
+    "csv_file": "db_1534777211_1534777200_0_3416B6F7-0EFF-496F-BBC8-7EBA38C90969.csv",
+    "csv_sha256": "89b9c95098bf93d89fd2d3a86fe11417725dd1ab2861b761e8ddaac5cee8e2a7"
+  }
+]
