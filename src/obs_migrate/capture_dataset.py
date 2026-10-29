@@ -12,6 +12,9 @@ import pyarrow.dataset as ds
 import pyarrow.fs as fs
 import pyarrow.parquet as pq
 
+from .metric_io import projected_schema
+from .native_scan import _batches
+
 
 class _LimitedBuffer(io.BytesIO):
     def __init__(self,limit):super().__init__();self.limit=limit
@@ -21,19 +24,23 @@ class _LimitedBuffer(io.BytesIO):
 
 
 class _Handler(fs.FileSystemHandler):
-    def __init__(self,selection,limit,reserve):
+    def __init__(self,selection,limit,reserve,columns):
         self.selection=selection;self.limit=limit;self.wire=None;self.arrow_bytes=0;self.materializations=0
         self._lock=threading.Lock();self.reserve=reserve
+        self.schema=projected_schema(selection.reader.SCHEMA,columns)
+        self.columns=None if columns is None else tuple(self.schema.names)
 
     def _ensure(self):
         with self._lock:
             if self.wire is None:
                 self.selection.capture.check();size=0
                 with _LimitedBuffer(self.limit) as stream:
-                    with pq.ParquetWriter(stream,self.selection.reader.SCHEMA,compression='zstd',write_statistics=True) as writer:
-                        rows=self.selection.records()
+                    with pq.ParquetWriter(stream,self.schema,compression='zstd',write_statistics=True) as writer:
+                        rows=self.selection.records(columns=self.columns)
                         try:
-                            for batch in self.selection.reader.batches(rows,max_rows=256):
+                            batches=(self.selection.reader.batches(rows,max_rows=256) if self.columns is None
+                                     else _batches(rows,self.schema,min(self.limit,8*1024**2)))
+                            for batch in batches:
                                 size+=batch.nbytes
                                 if size>self.limit:raise ValueError('capture dataset Arrow byte limit exceeded')
                                 writer.write_batch(batch)
@@ -57,9 +64,9 @@ class _Handler(fs.FileSystemHandler):
     create_dir=delete_dir=delete_dir_contents=delete_root_dir_contents=delete_file=move=copy_file=open_output_stream=open_append_stream=_readonly
 
 
-def dataset(selection,limit,reserve=lambda size:None):
-    handler=_Handler(selection,limit,reserve)
+def dataset(selection,limit,reserve=lambda size:None,*,columns=None):
+    handler=_Handler(selection,limit,reserve,columns)
     filesystem=fs.PyFileSystem(handler)
-    value=ds.FileSystemDataset.from_paths(['points.parquet'],schema=selection.reader.SCHEMA,
+    value=ds.FileSystemDataset.from_paths(['points.parquet'],schema=handler.schema,
         format=ds.ParquetFileFormat(),filesystem=filesystem)
     return value,handler

@@ -11,6 +11,16 @@ import pyarrow.parquet as pq
 from .export import atomic_output
 
 
+def projected_schema(schema,columns):
+    """Validate an explicit transport schema, preserving canonical field types."""
+    if columns is None:return schema
+    if (not isinstance(columns,(list,tuple)) or not columns or
+        any(not isinstance(name,str) or name not in schema.names for name in columns) or
+        len(set(columns))!=len(columns)):
+        raise ValueError('columns must be a nonempty list or tuple of unique canonical field names')
+    return pa.schema([schema.field(name) for name in columns],metadata=schema.metadata)
+
+
 class MetricRecordIO:
     def __init__(self, schema, source_format, binary_fields, *, count_field, status, schema_version=1):
         self.schema=schema

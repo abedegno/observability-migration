@@ -278,18 +278,24 @@ class CapturedSelection:
 
     def report(self):self.capture.check();return json.loads(self._report)
 
-    def records(self):
+    def records(self,*,columns=None):
+        """Canonical rows, optionally restricted to an explicit field schema."""
+        from .metric_io import projected_schema
+        schema=projected_schema(self.reader.SCHEMA,columns)
+        columns=None if columns is None else tuple(schema.names)
         c=self.capture
         if not c._lock.acquire(blocking=False):raise ValueError('captured bucket scan is active')
         try:
             c.check();first=True;m=c.manifest;snapshot=m['snapshot_manifest']
             for name,plan in self._plans.items():
-                rows=c._sources[name]._emit(plan,self.index,self.bucket_id)
+                rows=c._sources[name]._emit(plan,self.index,self.bucket_id,columns=columns)
                 try:
                     for row in rows:
-                        state=json.loads(row['storage_json']);state.update(bucket_snapshot_sha256=m['snapshot_sha256'],slice_file=name,bucket_query_sha256=self.sha256)
-                        if first:state['bucket_snapshot_manifest']=snapshot;first=False
-                        row['storage_json']=metric_bucket._json(state).decode();yield row
+                        if columns is None or 'storage_json' in columns:
+                            state=json.loads(row['storage_json']);state.update(bucket_snapshot_sha256=m['snapshot_sha256'],slice_file=name,bucket_query_sha256=self.sha256)
+                            if first:state['bucket_snapshot_manifest']=snapshot
+                            row['storage_json']=metric_bucket._json(state).decode()
+                        first=False;yield row
                 finally:rows.close()
         finally:c._unlock()
 
