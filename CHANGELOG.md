@@ -3,8 +3,9 @@
 ## Unreleased
 
 - Read the observed SmartStore failover copy with distinct origin/uploader GUIDs,
-  preserving both identities and original events; keep ambiguous copies and
-  unqualified distinct-uploader deletion contexts refused.
+  including native deletion, eviction and rehydration controls. Preserve both
+  identities and original events; retain full mask reconciliation, incomplete
+  inventory/ambiguous-copy refusals and unverified ownership.
 
 - Accept the observed immutable TSIDX9 flags0 SmartStore deletion base after
   complete receipt-bound CSV mask and journal reconciliation. Retain original

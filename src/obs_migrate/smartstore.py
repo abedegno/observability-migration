@@ -147,8 +147,6 @@ class AcquiredObjects:
             if siblings != member_keys | {key}:
                 raise ValueError('SmartStore uploader has unlisted/extra objects')
             if identifier in self._buckets:raise ValueError('multiple SmartStore generations for one bucket are ambiguous')
-            if distinct and any(name.startswith('rawdata/deletes/') for name in members):
-                raise ValueError('unqualified distinct-uploader deletion context')
             journal_names = [n for n in members if n in ('rawdata/journal.gz','rawdata/journal.zst')]
             if len(journal_names) != 1:raise ValueError('SmartStore receipt requires exactly one observed journal')
             self._buckets[identifier] = {'id': identifier, 'index': index, 'bucket_name': bucket_name,

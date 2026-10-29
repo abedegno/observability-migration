@@ -100,7 +100,7 @@ def mutate(tmp_path,damage):
             copied=dict(e);copied['file']='objects/copy-%02d.bin'%number;shutil.copyfile(path/e['file'],path/copied['file'])
             copied['key']='other/'+e['key'] if damage=='ambiguous_copy' else entry['key'].rsplit('/',1)[0]+'/unlisted.bin'
             entries.append(copied)
-    elif damage=='deletion_context':
+    elif damage=='equivalent_mask':
         # An ORIGINAL existing native mask, used only as a negative admission case.
         native=Path(__file__).parent/'fixtures/smartstore-tsidx9-10.6/03-deleted'
         original=next(e for e in json.loads((native/'objects.json').read_text()) if '/deletes/' in e['key'])
@@ -114,14 +114,13 @@ def mutate(tmp_path,damage):
     return path
 
 
-@pytest.mark.parametrize('damage',['origin_syntax','uploader_syntax','path_origin','path_local_id','key_origin','member_uploader','missing_member','extra_member','ambiguous_copy','deletion_context'])
+@pytest.mark.parametrize('damage',['origin_syntax','uploader_syntax','path_origin','path_local_id','key_origin','member_uploader','missing_member','extra_member','ambiguous_copy'])
 def test_inconsistent_or_unqualified_identity_refuses_before_empty_output(tmp_path,damage):
     path=mutate(tmp_path,damage);output=tmp_path/'never.parquet'
     with pytest.raises(ValueError) as failure:
         acquired=AcquiredObjects(path,offline_snapshot=True);bucket,=acquired.report()['buckets']
         with acquired.event_bucket(bucket['id'],experimental=True) as snapshot:event_bucket.export(snapshot,output,term=b'__absent__')
     assert not output.exists()
-    if damage=='deletion_context':assert 'distinct-uploader deletion' in str(failure.value)
     # Keep failure traceback alive through a fresh valid acquisition/scan.
     acquired=source();bucket,=acquired.report()['buckets']
     with acquired.event_bucket(bucket['id'],experimental=True) as snapshot:assert snapshot.table().num_rows==14
@@ -134,3 +133,21 @@ def test_existing_same_origin_snapshot_identity_unchanged():
     with acquired.event_bucket(bucket['id'],experimental=True,visibility='undeleted') as snapshot:
         assert snapshot.snapshot_sha256=='0ce131a963f54739464d758d23aa42953f70c162a7725c5663593aa182c274a6'
         assert snapshot.table().num_rows==11
+
+
+def test_identical_native_mask_content_is_not_an_origin_signature(tmp_path):
+    # Actual masks from separate native controls contain the identical CSV tuples.
+    # The receipt/inventory is caller-asserted provenance, not a signature proving
+    # which producer caused a mask. Copying equal native content cannot distinguish it.
+    import gzip
+    old=Path(__file__).parent/'fixtures/smartstore-tsidx9-10.6/03-deleted'
+    new=Path(__file__).parent/'fixtures/smartstore-foreign-deletes-10.6/01-deleted/acquired'
+    def body(root):
+        entry=next(e for e in json.loads((root/'objects.json').read_text()) if '/deletes/' in e['key'])
+        return gzip.decompress((root/entry['file']).read_bytes())
+    assert body(old)==body(new)
+    path=mutate(tmp_path,'equivalent_mask');acquired=AcquiredObjects(path,offline_snapshot=True);bucket,=acquired.report()['buckets']
+    assert bucket['copy_identity']['ownership']=='UNVERIFIED'
+    with acquired.event_bucket(bucket['id'],experimental=True,visibility='undeleted') as snapshot:
+        assert snapshot.table().num_rows==11
+        assert snapshot.deletion_report()['search_visibility']=='UNVERIFIED'

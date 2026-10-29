@@ -86,7 +86,28 @@ preserve original stored fields and Arrow/Parquet transports.
 Distinct copies expose `copy_identity` with both GUIDs and ownership `UNVERIFIED`.
 This is explicit receipt-bound physical-copy access; it does not elect a cluster
 owner or choose among generations. Multiple receipts for one bucket, unlisted
-siblings and inconsistent identities refuse. Distinct-uploader deletion contexts
-remain unqualified and refuse; existing same-origin deletion behavior is unchanged.
+siblings and inconsistent identities refuse. Distinct-uploader deletion masks use the separately qualified reconciliation below;
+existing same-origin deletion behavior is unchanged.
 The control is in `tests/fixtures/smartstore-foreign-uploader-10.6`. No production
 licence material is bundled or needed by the offline reader.
+
+
+## Replica-uploaded deletion masks
+
+The observed Splunk 10.6 RF2/SF2 failover control also qualifies complete
+receipt-bound masks under the distinct uploader. The original Zstd journal and
+TSIDX8 flags0 base remain byte-identical through deletion, cache eviction and
+rehydration. Both backends retain fourteen physical events and select eleven
+undeleted events, matching independent native JSON/CSV references.
+
+This reuses complete CSV address/time/metadata reconciliation and the existing
+immutable-base policy. Missing, misplaced or inconsistent masks and ambiguous
+copies refuse before output, including empty selections. Ordinary local bitmap
+agreement remains strict. The original files are in
+`tests/fixtures/smartstore-foreign-deletes-10.6`.
+
+Native masks from independent controls can contain identical CSV tuples; these
+bytes are not an origin signature. Receipt/inventory provenance remains
+caller-asserted, and ownership and native search visibility remain `UNVERIFIED`.
+This does not establish concurrent upload/generation election, arbitrary cluster
+search semantics, DDSS packaging or indexed search.
