@@ -128,3 +128,10 @@ including errors whose tracebacks are retained. Library consumers must close
 partially consumed iterators and exhaust successfully before committing results.
 These are exact physical predicates; larger snapshot SQL, indexed-search visibility
 and new storage profiles require separate qualification.
+
+
+Bounded offline `bucket-sql` can explicitly reuse the same MSIDX4 profile through
+`--resource-profile large` or `BucketSession.register(..., limits=profile)`.
+Exact source predicates bound the eager canonical input; SQL filters remain engine
+residuals. See [bucket SQL](federation.md#bounded-larger-offline-bucket-sql) for the
+separate input/result/engine bounds and the full-snapshot distinction.

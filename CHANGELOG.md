@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Expose existing explicit MSIDX4 resource profiles in bounded offline bucket SQL;
+  preserve default admission, exact source validation and SQL byte budgets.
+
 - Extend explicit bounded MSIDX4 profiles to direct file/bucket physical selection
   and its CLI; preserve default limits, query identity and original row bytes.
 - Retain storage-only multi-slice provenance regressions using unchanged native

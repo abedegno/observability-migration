@@ -136,3 +136,35 @@ logical first-row manifest and slice/query envelope as full canonical records.
 Keep the original capture: a projected table is a derived view, not a lossless
 replacement for the source archive. Direct library callers may also use
 `captured.select(...).records(columns=[...])`.
+
+
+### Bounded larger offline bucket SQL
+
+`BucketSession.register(..., limits=LARGE_METRICS)` reuses direct physical
+selection under the explicit MSIDX4 resource policy. The CLI exposes the same path:
+
+```sh
+obsmigrate metrics bucket-sql /offline/bucket --experimental --offline-snapshot \
+  --resource-profile large --source 'exact-original-source' \
+  --sql 'select count(*) as n from points' --out count.parquet
+```
+
+Choose actual exact source predicates (`--metric-name`, routing fields or
+`--dimension`); the Python predicate also supports exact stored-time bounds.
+Every slice still receives complete preflight, including no-match slices. The
+selected canonical rows are then eagerly materialized into a MemTable. SQL
+residuals remain in DataFusion, and SQL projection/count/LIMIT cannot bypass
+preparation of that explicit selection. Full input, shared session, result and
+engine budgets remain unchanged at256MiB by default. A broad selection can still
+refuse. Choose a bounded source predicate or an existing qualified capture provider
+rather than assuming SQL text reduces source preparation.
+
+Explicit source policy is retained in result provenance outside query/snapshot
+identity. Original byte fields, numeric bits, timestamp structs and row envelopes
+remain canonical. Defaults and legacy behavior are unchanged; explicit larger
+profiles refuse MSIDX1/2. Failed registration commits no table/input charge;
+retained exceptions and cancelled query streams permit subsequent reuse.
+
+This does not add a profile option or projection pushdown to `snapshot-sql`.
+That separate provider prepares a complete physical full-schema snapshot before
+SQL; its admission and Arrow limits need separate measurement and qualification.

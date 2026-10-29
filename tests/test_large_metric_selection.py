@@ -127,3 +127,10 @@ def test_open_source_batches_rejects_unapplied_budget_overrides(override):
     with metric_select.open_source(FILE,experimental=True,limits=LARGE) as source:
         with pytest.raises(TypeError,match='limits'):
             source.batches(metric_select.Predicate(),limits=override)
+
+
+def test_bucket_sql_help_exposes_explicit_resource_profile(capsys):
+    from obs_migrate.cli import main
+    with pytest.raises(SystemExit) as result:main(['metrics','bucket-sql','--help'])
+    assert result.value.code==0
+    assert '--resource-profile' in capsys.readouterr().out

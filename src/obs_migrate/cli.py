@@ -93,7 +93,7 @@ def main(argv=None):
         if bucket_selection and name!="capture-sql":
             p.add_argument("--offline-snapshot",action="store_true");p.add_argument("--include-inactive",action="store_true")
         p.add_argument("--experimental",action="store_true")
-        if name.startswith(("select-","bucket-select-")):
+        if name.startswith(("select-","bucket-select-")) or name=="bucket-sql":
             p.add_argument("--resource-profile",choices=["default","large"],default="default")
         if name=="capture-sql":
             p.add_argument("--resource-profile",choices=["default","large"],default="default")
@@ -283,7 +283,7 @@ def main(argv=None):
                             result=session.sql(args.sql).write(args.out,args.format)
                     else:
                         session.register("points",args.path,predicate,experimental=args.experimental,
-                            offline_snapshot=args.offline_snapshot,include_inactive=args.include_inactive,index=args.index,bucket_id=args.bucket_id)
+                            offline_snapshot=args.offline_snapshot,include_inactive=args.include_inactive,index=args.index,bucket_id=args.bucket_id,limits=limits)
                         result=session.sql(args.sql).write(args.out,args.format)
                 elif args.command.startswith("bucket-select-"):
                     from . import bucket_select
