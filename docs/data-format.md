@@ -87,9 +87,9 @@ Export/verify receipts identify explicit limits separately. Optional
 charge; `complete` becomes true only after full source exhaustion and final source
 checks. Closing a partial iterator releases cursor buffers and records incomplete
 validation. Larger profiles apply to MSIDX4 file/bucket bulk export and verification,
-and explicitly opted-in immutable capture creation, reopening and capture SQL.
-Ordinary file/bucket selection, snapshot SQL and legacy readers retain existing
-limits. Capture policy, provider budgets and scope are described in the
+explicitly opted-in immutable capture creation, reopening and capture SQL, and
+explicit direct file/bucket selection. Default limits remain unchanged; snapshot
+SQL qualification and legacy-reader policies remain separate. Capture policy, provider budgets and scope are described in the
 [federation guide](federation.md#explicit-larger-metric-captures).
 
 
