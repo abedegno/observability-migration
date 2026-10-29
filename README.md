@@ -84,7 +84,22 @@ The [offline access contract](docs/support-contract.md) defines the finite scope
 for a stable build. [Support and maintenance](SUPPORT.md) describes best-effort
 reporting, triage and release policy; optional federation remains experimental.
 
-### Prerelease: 1.1.0rc2
+### Candidate: 1.1.0rc3
+
+The next coherent candidate adds standard-frame LZ4 event and retained-metric
+journals, explicit larger metric capture/selection/SQL profiles, and caller-selected
+columns for immutable-capture and whole-snapshot SQL preparation. Full physical
+validation remains mandatory, default limits stay unchanged, and prepared SQL
+sessions can reuse the selected scalar columns. Full-schema materialization can
+still exceed the input budget. These are physical-data interfaces, not SPL or
+general indexed search.
+
+The candidate remains unpublished until exact-asset qualification and owner
+approval. Its qualification and release notes identify the actual frozen source,
+platforms, optional providers and tested native profiles. See [formats](docs/formats.md),
+[usage](docs/usage.md) and [federation](docs/federation.md).
+
+### Published prerelease: 1.1.0rc2
 
 The [1.1.0rc2 prerelease](https://github.com/abedegno/observability-migration/releases/tag/v1.1.0rc2) includes support for empty bucket-info index-time annotations
 and the observed extended Float64 event metadata profile. The explicit

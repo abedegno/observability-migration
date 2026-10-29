@@ -62,3 +62,13 @@ allocation peaks. Published 1.1.0rc1 and stable 1.0.0 assets stay unchanged;
 extraction versus search-visibility boundaries continue to apply. Larger metric
 SQL/capture is not qualified by bulk export. Later documentation changes on main
 do not alter the frozen assets or their preparation-time qualification summary.
+
+The **1.1.0rc3 candidate** bundles the subsequent larger metric capture,
+selection and SQL interfaces, explicit field projection, retained-failure cleanup
+and standard-frame LZ4 journal access. It uses a new frozen source/wheel and
+five exact assets; it does not replace the published rc2 files or tag. Runtime
+profile flags, original-source retention, finite budgets and optional native
+provider exclusions remain. Candidate preparation and an unpublished draft do
+not constitute publication approval. The attached qualification binds the actual
+build-input commit and independently verified artifact hashes. Stable 1.0.0
+remains unchanged; no PyPI or production native-wheel distribution is implied.

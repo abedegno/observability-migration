@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.1.0rc3 — 2026-10-29
+
 - Read genuine standard-frame LZ4 event/retained-metric journals through the
   existing decoder, local bucket discovery, linked access and event jobs; preserve
   original source identity and reject incomplete/corrupt/trailing frames.
