@@ -152,7 +152,10 @@ class Snapshot:
         self.finish()
         return {'snapshot_sha256':self.sha256,**self.manifest}
 
-    def records(self,*,experimental=False,index=None,bucket_id=None):
+    def records(self,*,experimental=False,index=None,bucket_id=None,columns=None):
+        if columns is not None:
+            yield from self._projected_records(columns,experimental=experimental,index=index,bucket_id=bucket_id)
+            return
         if not experimental:raise ValueError('metric bucket decoder is experimental; pass --experimental')
         self.finish();first=True
         for name in self.slices:
@@ -168,6 +171,30 @@ class Snapshot:
                     row['storage_json']=_json(state).decode()
                     yield row
             finally:rows.close()
+        self.finish()
+
+
+    def _projected_records(self,columns,*,experimental,index,bucket_id):
+        """Validate every source field before emitting a caller-selected view."""
+        from .metric_io import projected_schema
+        from .metric_select import open_source,Predicate
+        if not experimental:raise ValueError('metric bucket decoder is experimental; pass --experimental')
+        columns=tuple(projected_schema(self.reader.SCHEMA,columns).names)
+        self.finish();first=True
+        for name in self.slices:
+            with open_source(self.root/name,experimental=True,limits=self.limits) as source:
+                if source.sha256!=self.manifest['files'][name]['sha256'] or source.module is not self.reader:
+                    raise ValueError('projected slice changed after snapshot')
+                rows=source._emit(source.plan(Predicate()),index,bucket_id,columns=columns)
+                try:
+                    for row in rows:
+                        if 'storage_json' in columns:
+                            state=json.loads(row['storage_json'])
+                            state.update(bucket_snapshot_sha256=self.sha256,slice_file=name)
+                            if first:state['bucket_snapshot_manifest']=self.manifest
+                            row['storage_json']=_json(state).decode()
+                        first=False;yield row
+                finally:rows.close()
         self.finish()
 
 
