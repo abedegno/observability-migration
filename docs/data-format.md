@@ -106,3 +106,25 @@ bytes, nullable types, timestamp structs and row provenance, while omitting othe
 fields from its registered schema. SQL provenance binds the requested columns;
 source capture/selection identities remain unchanged. The default remains the full
 canonical schema. See [DatasetTable columns](federation.md#explicit-capture-datasettable-columns).
+
+
+Direct MSIDX4 physical selection accepts the same explicit finite metric profile:
+`metric_select.records|batches|explain|export|verify(..., limits=LARGE_METRICS)`
+and `bucket_select.Selection(..., limits=LARGE_METRICS)` (or its convenience
+functions). CLI `metrics select-*` and `metrics bucket-select-*` expose
+`--resource-profile large`. Supply the policy on each operation; defaults remain
+unchanged and explicit profiles refuse MSIDX1/2.
+
+Selection still validates every physical source point, including no-match slices,
+and rechecks regular-file/bucket identities. Original canonical rows and logical
+query/snapshot hashes do not change with the policy. Explicit reports and receipts
+record `metric_resource_profile`. Bucket-selection bundle manifests retain this
+policy outside query identity; verification requires the same explicit policy and
+never derives its admission budget from the artifact. A default-generated bundle
+continues to verify under its original default contract.
+
+Source contexts and partial bucket iterators release numeric cursors on close,
+including errors whose tracebacks are retained. Library consumers must close
+partially consumed iterators and exhaust successfully before committing results.
+These are exact physical predicates; larger snapshot SQL, indexed-search visibility
+and new storage profiles require separate qualification.

@@ -91,8 +91,8 @@ selection through bounded Parquet; a broad query can refuse the materialization
 budget even if its final result is only a count. Select a bounded source predicate
 or register explicit dataset columns as below. A qualified native projection is
 another option. Budgets never increase implicitly.
-Both retain SQL residual filters, physical-data semantics and provenance. Ordinary
-file/bucket selection and snapshot SQL do not inherit this opt-in profile.
+Both retain SQL residual filters, physical-data semantics and provenance. Direct file/bucket selection accepts its own explicit profile as described in
+the [data contract](data-format.md); snapshot SQL qualification remains separate.
 
 
 ### Explicit capture DatasetTable columns

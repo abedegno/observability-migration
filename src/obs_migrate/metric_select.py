@@ -12,7 +12,7 @@ from dataclasses import dataclass
 import os
 from pathlib import Path
 
-from . import msidx,msidx1,msidx2,metric_storage
+from . import msidx,msidx1,msidx2,metric_storage,metric_limits
 from .stored_time import TimeRange,ticks
 
 FIELDS=('metric_name','host','source','sourcetype')
@@ -75,6 +75,7 @@ class Plan:
 
 class _Source:
     def __init__(self,data,sha,module,*,limits=None):
+        self.limits=metric_limits.validate(limits)
         self.data=data;self.sha256=sha;self.module=module;self.closed=False
         self.stamp=None if type(data) is bytes else msidx._stable(os.fstat(data.fd))
         self.reader=module._Reader(data,**metric_storage.record_options(module,limits))
@@ -193,6 +194,7 @@ class _Source:
         if plan.predicate.time_range is not None:
             report['time_candidate_strategy']='immutable_preflight_nanosecond_index' if self._time_ticks is not None else 'fresh_candidate_timestamp_scan'
             report['time_index_bytes']=0 if self._time_ticks is None else len(self._time_ticks)*self._time_ticks.itemsize+len(self._time_ordinals)*self._time_ordinals.itemsize
+        if self.limits is not None:report['metric_resource_profile']=self.limits.describe()
         return report
 
     def _emit(self,plan,index=None,bucket_id=None,*,columns=None,release_cursors=True):
@@ -219,44 +221,44 @@ class _Source:
         yield from self._emit(self.plan(predicate),index,bucket_id)
 
 
-    def batches(self,predicate,*,index=None,bucket_id=None,max_rows=1024,max_bytes=8*1024*1024):
+    def batches(self,predicate,*,index=None,bucket_id=None,max_rows=1024,max_bytes=8*1024*1024,limits=None):
         yield from self.module.batches(self.records(predicate,index=index,bucket_id=bucket_id),max_rows,max_bytes)
 
 
 @contextmanager
-def open_source(path,*,experimental=False):
+def open_source(path,*,experimental=False,limits=None):
     if not experimental:raise ValueError('metric selection is experimental; pass --experimental')
     module=metric_storage.reader_for(path)
     if module not in (msidx1,msidx2,msidx):raise ValueError('exact selection supports verified MSIDX1/MSIDX2/MSIDX4 profiles only')
     with msidx._source(path) as (data,sha):
-        source=_Source(data,sha,module)
+        source=_Source(data,sha,module,limits=limits)
         try:yield source
         finally:
             try:source.check()
-            finally:source.closed=True
+            finally:source.close()
 
 
-def records(path,predicate,*,experimental=False,index=None,bucket_id=None):
-    with open_source(path,experimental=experimental) as source:
+def records(path,predicate,*,experimental=False,index=None,bucket_id=None,limits=None):
+    with open_source(path,experimental=experimental,limits=limits) as source:
         yield from source.records(predicate,index=index,bucket_id=bucket_id)
 
 
-def batches(path,predicate,*,experimental=False,index=None,bucket_id=None,max_rows=1024,max_bytes=8*1024*1024):
-    with open_source(path,experimental=experimental) as source:
+def batches(path,predicate,*,experimental=False,index=None,bucket_id=None,max_rows=1024,max_bytes=8*1024*1024,limits=None):
+    with open_source(path,experimental=experimental,limits=limits) as source:
         yield from source.batches(predicate,index=index,bucket_id=bucket_id,max_rows=max_rows,max_bytes=max_bytes)
 
 
-def explain(path,predicate,*,experimental=False):
-    with open_source(path,experimental=experimental) as source:return source.explain(predicate)
+def explain(path,predicate,*,experimental=False,limits=None):
+    with open_source(path,experimental=experimental,limits=limits) as source:return source.explain(predicate)
 
 
-def _transport(path,predicate,target,format,experimental,index,bucket_id,verify):
+def _transport(path,predicate,target,format,experimental,index,bucket_id,verify,limits):
     module=metric_storage.reader_for(path);report={}
     if module not in (msidx1,msidx2,msidx):raise ValueError('exact selection supports verified MSIDX1/MSIDX2/MSIDX4 profiles only')
     if not verify and Path(target).resolve().is_relative_to(Path(path).resolve().parent):
         raise ValueError('output must be outside the source archive/bucket')
     def selected():
-        with open_source(path,experimental=experimental) as source:
+        with open_source(path,experimental=experimental,limits=limits) as source:
             plan=source.plan(predicate);report.update(source._report(plan))
             yield from source._emit(plan,index,bucket_id)
     rows=selected()
@@ -264,9 +266,9 @@ def _transport(path,predicate,target,format,experimental,index,bucket_id,verify)
     return {**result,**report}
 
 
-def export(path,predicate,output,format='parquet',*,experimental=False,index=None,bucket_id=None):
-    return _transport(path,predicate,output,format,experimental,index,bucket_id,False)
+def export(path,predicate,output,format='parquet',*,experimental=False,index=None,bucket_id=None,limits=None):
+    return _transport(path,predicate,output,format,experimental,index,bucket_id,False,limits)
 
 
-def verify(path,predicate,against,format='parquet',*,experimental=False,index=None,bucket_id=None):
-    return _transport(path,predicate,against,format,experimental,index,bucket_id,True)
+def verify(path,predicate,against,format='parquet',*,experimental=False,index=None,bucket_id=None,limits=None):
+    return _transport(path,predicate,against,format,experimental,index,bucket_id,True,limits)

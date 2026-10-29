@@ -102,3 +102,32 @@ def test_dataset_cli_option_refuses_native_provider_before_open(capsys):
                  '--provider','native','--dataset-column','point_ordinal','--sql','select count(*) from points','--out','absent.parquet'])
     assert status==1
     assert '--dataset-column requires --provider dataset' in capsys.readouterr().err
+
+
+@pytest.mark.parametrize('mode',['all','second','empty'])
+def test_storage_only_envelope_across_original_native_slices(tmp_path,mode):
+    """Composed test container, not a claimed producer-generated bucket.
+
+    Both native slices remain byte-identical to redistributable genuine inputs;
+    real NAS multi-slice bucket evidence is retained separately in qualification.
+    """
+    import shutil
+    bucket=tmp_path/'bucket';bucket.mkdir()
+    for root in (ROOT/'metrics/10.6.0.5',ROOT/'metric-xor-9'):
+        original=next(root.glob('db_*/*.tsidx'));shutil.copyfile(original,bucket/original.name)
+    path=tmp_path/'two-slices.zip';receipt=capture.create(bucket,path,experimental=True,offline_snapshot=True)
+    with capture.CapturedBucket(path,expected_sha256=receipt['capture_sha256'],experimental=True) as source:
+        full=list(source.select().records());names=list(source._sources)
+        assert len(names)==2
+        if mode=='second':
+            second=next(r for r in full if json.loads(r['storage_json'])['slice_file']==names[1])
+            predicate=metric_select.Predicate(source=second['source'])
+        else:predicate=metric_select.Predicate(host=b'absent') if mode=='empty' else metric_select.Predicate()
+        selected=source.select(predicate);expected=[{'storage_json':r['storage_json']} for r in selected.records()]
+        if mode=='second':assert selected.report()['slices'][0]['candidate_points']==0 and expected
+        if mode=='empty':assert not expected
+        if mode=='all':assert all(s['candidate_points']>0 for s in selected.report()['slices'])
+        assert list(selected.records(columns=['storage_json']))==expected
+        value,_=dataset(selected,32*1024**2,columns=['storage_json'])
+        assert value.to_table(use_threads=False).to_pylist()==expected
+        assert sum('bucket_snapshot_manifest' in json.loads(r['storage_json']) for r in expected)==bool(expected)

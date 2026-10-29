@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Extend explicit bounded MSIDX4 profiles to direct file/bucket physical selection
+  and its CLI; preserve default limits, query identity and original row bytes.
+- Retain storage-only multi-slice provenance regressions using unchanged native
+  fixture bytes, and release owned selection cursors on early close and failure.
+
 - Add explicit canonical column selection for immutable capture DatasetTables,
   library records and capture SQL; preserve full-schema defaults and byte limits.
 

@@ -93,6 +93,8 @@ def main(argv=None):
         if bucket_selection and name!="capture-sql":
             p.add_argument("--offline-snapshot",action="store_true");p.add_argument("--include-inactive",action="store_true")
         p.add_argument("--experimental",action="store_true")
+        if name.startswith(("select-","bucket-select-")):
+            p.add_argument("--resource-profile",choices=["default","large"],default="default")
         if name=="capture-sql":
             p.add_argument("--resource-profile",choices=["default","large"],default="default")
             p.add_argument("--dataset-column",action="append",help="repeat canonical columns to restrict the dataset schema; requires --provider dataset")
@@ -286,14 +288,14 @@ def main(argv=None):
                 elif args.command.startswith("bucket-select-"):
                     from . import bucket_select
                     options=dict(experimental=args.experimental,offline_snapshot=args.offline_snapshot,
-                        include_inactive=args.include_inactive,index=args.index,bucket_id=args.bucket_id)
+                        include_inactive=args.include_inactive,index=args.index,bucket_id=args.bucket_id,limits=limits)
                     if args.command.endswith("explain"):result=bucket_select.explain(args.path,predicate,**options)
                     elif args.command.endswith("export"):result=bucket_select.export(args.path,predicate,args.out,args.format,**options)
                     else:result=bucket_select.verify(args.path,predicate,args.against,args.format,**options)
                 elif args.command=="select-explain":
-                    result=metric_select.explain(args.path,predicate,experimental=args.experimental)
+                    result=metric_select.explain(args.path,predicate,experimental=args.experimental,limits=limits)
                 else:
-                    options=dict(experimental=args.experimental,index=args.index,bucket_id=args.bucket_id)
+                    options=dict(experimental=args.experimental,index=args.index,bucket_id=args.bucket_id,limits=limits)
                     if args.command=="select-export":result=metric_select.export(args.path,predicate,args.out,args.format,**options)
                     else:result=metric_select.verify(args.path,predicate,args.against,args.format,**options)
             elif args.command.startswith("bucket-"):

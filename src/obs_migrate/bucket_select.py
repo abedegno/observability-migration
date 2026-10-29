@@ -28,10 +28,10 @@ def _sha(path):
 
 
 class Selection:
-    def __init__(self,path,predicate,*,experimental=False,offline_snapshot=False,include_inactive=False,index=None,bucket_id=None):
+    def __init__(self,path,predicate,*,experimental=False,offline_snapshot=False,include_inactive=False,index=None,bucket_id=None,limits=None):
         if not experimental:raise ValueError('bucket predicates are experimental; pass --experimental')
         if not isinstance(predicate,metric_select.Predicate):raise ValueError('selection requires an exact Predicate')
-        self.snapshot=metric_bucket.Snapshot(path,offline_snapshot=offline_snapshot,include_inactive=include_inactive)
+        self.snapshot=metric_bucket.Snapshot(path,offline_snapshot=offline_snapshot,include_inactive=include_inactive,limits=limits)
         self.reader=self.snapshot.reader
         if self.reader not in (msidx1,msidx2,msidx):raise ValueError('bucket predicates support verified MSIDX1/MSIDX2/MSIDX4 profiles only')
         self.predicate=predicate;self.index=index;self.bucket_id=bucket_id
@@ -47,7 +47,7 @@ class Selection:
         try:
             self.snapshot.finish()
             for name in self.snapshot.slices:
-                with metric_select.open_source(self.snapshot.root/name,experimental=True) as source:
+                with metric_select.open_source(self.snapshot.root/name,experimental=True,limits=self.snapshot.limits) as source:
                     if source.sha256!=self.snapshot.manifest['files'][name]['sha256'] or source.module is not self.reader:
                         raise ValueError('selected slice changed after snapshot')
                     plan=source.plan(self.predicate);report=source._report(plan)
@@ -55,11 +55,14 @@ class Selection:
                         'fully_validated_points':report['fully_validated_points'],'candidate_points':report['candidate_points'],
                         'candidate_dimension_sets':report['candidate_dimension_sets'],'candidate_strategy':report['candidate_strategy']})
                     if emit:
-                        for row in source._emit(plan,self.index,self.bucket_id):
-                            state=json.loads(row['storage_json'])
-                            state.update(bucket_snapshot_sha256=self.snapshot.sha256,slice_file=name,bucket_query_sha256=self.sha256)
-                            if first:state['bucket_snapshot_manifest']=self.snapshot.manifest;first=False
-                            row['storage_json']=metric_bucket._json(state).decode();yield row
+                        rows=source._emit(plan,self.index,self.bucket_id)
+                        try:
+                            for row in rows:
+                                state=json.loads(row['storage_json'])
+                                state.update(bucket_snapshot_sha256=self.snapshot.sha256,slice_file=name,bucket_query_sha256=self.sha256)
+                                if first:state['bucket_snapshot_manifest']=self.snapshot.manifest;first=False
+                                row['storage_json']=metric_bucket._json(state).decode();yield row
+                        finally:rows.close()
             self.snapshot.finish()
             self.complete=True
         finally:
@@ -80,7 +83,8 @@ class Selection:
             'fully_validated_points':sum(s['fully_validated_points'] for s in self.slices),
             'candidate_points':sum(s['candidate_points'] for s in self.slices),
             'full_preflight_scan':True,'performance_claim':False,'physical_predicate_selection':True,
-            'search_visibility':'UNVERIFIED','indexed_search_supported':False}
+            'search_visibility':'UNVERIFIED','indexed_search_supported':False,
+            **({'metric_resource_profile':self.snapshot.limits.describe()} if self.snapshot.limits is not None else {})}
 
     def explain(self):
         for _ in self._scan(False):pass
@@ -124,7 +128,8 @@ def export(path,predicate,output,format='parquet',**options):
         'query_sha256':selection.sha256,'bucket_snapshot_sha256':selection.snapshot.sha256,
         'stored_points':stats['stored_points'],'selected_slices':len(selection.slices),
         'zero_match_slices':sum(s['candidate_points']==0 for s in selection.slices),
-        'native_assisted':False,'indexed_search_supported':False,'search_visibility':'UNVERIFIED'}
+        'native_assisted':False,'indexed_search_supported':False,'search_visibility':'UNVERIFIED',
+        **({'metric_resource_profile':selection.snapshot.limits.describe()} if selection.snapshot.limits is not None else {})}
 
 
 def _object(pairs):
@@ -215,4 +220,5 @@ def verify(path,predicate,against,format=None,**options):
         'comparison':'query identity, complete source/result manifests, payload hash and all canonical rows',
         'query_sha256':selection.sha256,'bucket_snapshot_sha256':selection.snapshot.sha256,
         'selected_slices':len(selection.slices),'zero_match_slices':sum(s['candidate_points']==0 for s in selection.slices),
-        'native_assisted':False,'indexed_search_supported':False,'search_visibility':'UNVERIFIED'}
+        'native_assisted':False,'indexed_search_supported':False,'search_visibility':'UNVERIFIED',
+        **({'metric_resource_profile':selection.snapshot.limits.describe()} if selection.snapshot.limits is not None else {})}
